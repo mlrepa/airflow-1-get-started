@@ -6,6 +6,7 @@ airflow/*.out
 airflow/*.pid
 airflow/unittests.cfg
 airflow-webserver.pid
+airflow/standalone_admin_password.txt
 
 ## Configs
 .env
