@@ -1,0 +1,30 @@
+## Airflow
+airflow/logs
+airflow/*.err
+airflow/*.log
+airflow/*.out
+airflow/*.pid
+airflow/unittests.cfg
+airflow-webserver.pid
+
+## Configs
+.env
+
+## IDEs
+.idea
+.vscode
+
+## Mac OS
+.DS_store
+
+## Project
+/data/*
+/db/*
+/grafana/volume
+/models/*
+/reports/*
+
+## Python
+venv
+.venv
+__pycache__
