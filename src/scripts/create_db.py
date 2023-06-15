@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 
-from config.db_config import DATABASE_URI
+from config import DATABASE_URI
 from src.utils.models import Base
 
 

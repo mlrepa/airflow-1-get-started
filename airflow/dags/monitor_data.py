@@ -4,7 +4,7 @@ from airflow.sensors.external_task import ExternalTaskSensor
 from pathlib import Path
 import pendulum
 
-from config.dags_config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL
+from config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL
 from src.pipelines.monitor_data import monitor_data
 
 

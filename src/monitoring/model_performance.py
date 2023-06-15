@@ -2,7 +2,7 @@ import numpy as np
 from sqlalchemy import create_engine
 from typing import Dict, List, Text
 
-from config.db_config import DATABASE_URI
+from config import DATABASE_URI
 from src.utils.db_utils import open_sqa_session, add_or_update_by_ts
 from src.utils.models import (
     ModelPerformanceTable,
