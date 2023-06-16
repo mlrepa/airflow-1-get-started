@@ -1,21 +1,15 @@
 import pandas as pd
 import uuid
 
+from config import DATA_RAW_DIR, FEATURES_DIR, DATA_FILES
+
 
 def process() -> None:
     """Train a linear regression model on the given dataset."""
 
     # Specify the raw data directory and read the January dataset
-    DATA_RAW_DIR = 'data/raw'
-    DATA_FEATURES_DIR = 'data/features'
-
-    files = [
-        "green_tripdata_2021-01.parquet",
-        "green_tripdata_2021-02.parquet"
-    ]
-
     print("Load train data")
-    for file in files:
+    for file in DATA_FILES:
 
         path_source = f'{DATA_RAW_DIR}/{file}'
         data = pd.read_parquet(path_source)
@@ -33,7 +27,7 @@ def process() -> None:
         )
 
         print("Save data")
-        path_destination = f'{DATA_FEATURES_DIR}/{file}'
+        path_destination = f'{FEATURES_DIR}/{file}'
         data.to_parquet(path_destination)
 
 

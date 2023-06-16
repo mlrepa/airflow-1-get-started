@@ -12,6 +12,7 @@ from evidently.report import Report
 
 from src.monitoring.data_quality import commit_data_metrics_to_db
 from src.utils.utils import extract_batch_data, get_batch_interval
+from config import FEATURES_DIR, REFERENCE_DIR, COLUMN_MAPPING
 
 
 def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
@@ -26,10 +27,8 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
             A DataFrame containing the current data merged with predictions.
     """
 
-    DATA_FEATURES_DIR = 'data/features'
-
     # Get current data (features)
-    data_path = f'{DATA_FEATURES_DIR}/green_tripdata_2021-02.parquet'
+    data_path = f'{FEATURES_DIR}/green_tripdata_2021-02.parquet'
     data = pd.read_parquet(data_path)
     current_data = extract_batch_data(
         data,
@@ -46,8 +45,7 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
 def generate_reports(
     current_data: pd.DataFrame,
     reference_data: pd.DataFrame,
-    num_features: List[Text],
-    cat_features: List[Text],
+    column_mapping: ColumnMapping,
     timestamp: float
 ) -> None:
     """
@@ -59,18 +57,11 @@ def generate_reports(
             The current DataFrame with features and predictions.
         reference_data (pd.DataFrame):
             The reference DataFrame with features and predictions.
-        num_features (List[Text]):
-            List of numerical feature column names.
-        cat_features (List[Text]):
-            List of categorical feature column names.
+        column_mapping: ColumnMapping
+            ColumnMapping object to map your column names and feature types
         timestamp (float):
             Metric pipeline execution timestamp.
     """
-
-    logging.info("Prepare column mapping")
-    column_mapping = ColumnMapping()
-    column_mapping.numerical_features = num_features
-    column_mapping.categorical_features = cat_features
 
     logging.info("Data quality report")
     data_quality_report = Report(metrics=[DatasetSummaryMetric()])
@@ -109,21 +100,18 @@ def monitor_data(
         interval (int, optional): Interval. Defaults to 60.
     """
 
-    num_features = [
-        'passenger_count', 'trip_distance',
-        'fare_amount', 'total_amount'
-    ]
-    cat_features = ['PULocationID', 'DOLocationID']
+    # Define columns
+    columns: List[Text] = COLUMN_MAPPING.numerical_features \
+                        + COLUMN_MAPPING.categorical_features
 
     # Prepare current data
     start_time, end_time = get_batch_interval(ts, interval)
     current_data: pd.DataFrame = prepare_current_data(start_time, end_time)
+    current_data = current_data.loc[:, columns]
 
     # Prepare reference data
-    DATA_REF_DIR = 'data/reference'
-    ref_path = f'{DATA_REF_DIR}/reference_data_2021-01.parquet'
+    ref_path = f'{REFERENCE_DIR}/reference_data_2021-01.parquet'
     ref_data = pd.read_parquet(ref_path)
-    columns: List[Text] = num_features + cat_features #+ [prediction_col]
     reference_data = ref_data.loc[:, columns]
 
     if current_data.shape[0] == 0:
@@ -138,8 +126,7 @@ def monitor_data(
         generate_reports(
             current_data=current_data,
             reference_data=reference_data,
-            num_features=num_features,
-            cat_features=cat_features,
+            column_mapping=COLUMN_MAPPING,
             timestamp=ts.timestamp()
         )
 

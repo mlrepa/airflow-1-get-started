@@ -1,4 +1,19 @@
 from typing import Text
+from evidently import ColumnMapping
+
+
+# Dataset 
+DATA_SOURCE_URL = 'https://d37ci6vzurychx.cloudfront.net/trip-data'
+DATA_FILES = [
+        "green_tripdata_2021-01.parquet",
+        "green_tripdata_2021-02.parquet"
+    ]
+
+# Directories 
+DATA_RAW_DIR = 'data/raw'
+FEATURES_DIR = 'data/features'
+REFERENCE_DIR = 'data/reference'
+PREDICTIONS_DIR = 'data/predictions'
 
 # Database 
 DATABASE_URI: Text = "postgresql://admin:admin@localhost:5432/monitoring_db"
@@ -8,4 +23,11 @@ START_DATE_TIME = '2021-02-01 01:00:00'
 END_DATE_TIME = '2021-02-28 23:00:00'
 BATCH_INTERVAL = 60
 
-
+# Map your column names and feature types
+COLUMN_MAPPING = ColumnMapping()
+COLUMN_MAPPING.target = 'duration_min'
+COLUMN_MAPPING.prediction = 'predictions'
+COLUMN_MAPPING.numerical_features = [
+    'passenger_count', 'trip_distance','fare_amount', 'total_amount']
+COLUMN_MAPPING.categorical_features = [
+    'PULocationID', 'DOLocationID']

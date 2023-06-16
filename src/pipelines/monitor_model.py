@@ -12,15 +12,13 @@ from evidently.report import Report
 from src.monitoring.model_performance import commit_model_metrics_to_db
 from src.pipelines.monitor_data import prepare_current_data
 from src.utils.utils import get_batch_interval
+from config import PREDICTIONS_DIR, REFERENCE_DIR, COLUMN_MAPPING
 
 
 def generate_reports(
     current_data: pd.DataFrame,
     reference_data: pd.DataFrame,
-    num_features: List[Text],
-    cat_features: List[Text],
-    prediction_col: Text,
-    target_col: Text,
+    column_mapping: ColumnMapping,
     timestamp: float
 ) -> None:
     """
@@ -32,22 +30,11 @@ def generate_reports(
             The current DataFrame with features and predictions.
         reference_data (pd.DataFrame):
             The reference DataFrame with features and predictions.
-        num_features (List[Text]):
-            List of numerical feature column names.
-        cat_features (List[Text]):
-            List of categorical feature column names.
-        prediction_col (Text):
-            Name of the prediction column.
+        column_mapping: ColumnMapping
+            ColumnMapping object to map your column names and feature types
         timestamp (float):
             Metric pipeline execution timestamp.
     """
-
-    print("Prepare column_mapping object for Evidently reports")
-    column_mapping = ColumnMapping()
-    column_mapping.target = target_col
-    column_mapping.prediction = prediction_col
-    column_mapping.numerical_features = num_features
-    column_mapping.categorical_features = cat_features
 
     logging.info("Create a model performance report")
     model_performance_report = Report(metrics=[RegressionQualityMetric()])
@@ -58,7 +45,7 @@ def generate_reports(
     )
 
     logging.info("Target drift report")
-    target_drift_report = Report(metrics=[ColumnDriftMetric(target_col)])
+    target_drift_report = Report(metrics=[ColumnDriftMetric(column_mapping.target)])
     target_drift_report.run(
         reference_data=reference_data,
         current_data=current_data,
@@ -86,16 +73,6 @@ def monitor_model(
         interval (int, optional): Interval. Defaults to 60.
     """
 
-    DATA_REF_DIR = 'data/reference'
-    PREDICTIONS_DIR = 'data/predictions'
-    target_col = 'duration_min'
-    prediction_col = 'predictions'
-    num_features = [
-        'passenger_count', 'trip_distance',
-        'fare_amount', 'total_amount'
-    ]
-    cat_features = ['PULocationID', 'DOLocationID']
-
     # Prepare current data
     start_time, end_time = get_batch_interval(ts, interval)
     current_data = prepare_current_data(start_time, end_time)
@@ -109,8 +86,6 @@ def monitor_model(
     current_data = current_data.merge(predictions, on='uuid', how='left')
     current_data = current_data.fillna(current_data.median(numeric_only=True)).fillna(-1)
     
-    
-
     if current_data.shape[0] == 0:
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
@@ -120,21 +95,18 @@ def monitor_model(
     else:
 
         # Prepare reference data
-        ref_path = f'{DATA_REF_DIR}/reference_data_2021-01.parquet'
+        ref_path = f'{REFERENCE_DIR}/reference_data_2021-01.parquet'
         ref_data = pd.read_parquet(ref_path)
-        columns: List[Text] = (
-            num_features + cat_features + [target_col, prediction_col]
-        )
+        columns: List[Text] = COLUMN_MAPPING.numerical_features \
+                            + COLUMN_MAPPING.categorical_features \
+                            + [ COLUMN_MAPPING.target, COLUMN_MAPPING.prediction ]
         reference_data = ref_data.loc[:, columns]
 
         # Generate reports
         generate_reports(
             current_data=current_data,
             reference_data=reference_data,
-            num_features=num_features,
-            cat_features=cat_features,
-            prediction_col=prediction_col,
-            target_col=target_col,
+            column_mapping=COLUMN_MAPPING,
             timestamp=ts.timestamp()
         )
 

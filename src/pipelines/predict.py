@@ -11,6 +11,7 @@ from src.utils.utils import (
     extract_batch_data,
     prepare_scoring_data
 )
+from config import FEATURES_DIR, PREDICTIONS_DIR
 
 
 def load_data(path: Path, start_time: Text, end_time: Text) -> pd.DataFrame:
@@ -75,13 +76,11 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
         interval (int, optional): Interval. Defaults to 60.
     """
 
-    DATA_FEATURES_DIR = 'data/features'
-
     # Compute the batch start and end time
     start_time, end_time = get_batch_interval(ts, interval)
 
     # Prepare data
-    path = Path(f'{DATA_FEATURES_DIR}/green_tripdata_2021-02.parquet')
+    path = Path(f'{FEATURES_DIR}/green_tripdata_2021-02.parquet')
     batch_data = load_data(path, start_time, end_time)
     
     if batch_data.shape[0] > 0:
@@ -93,7 +92,7 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
 
         # Save predictions
         filename = ts.to_date_string()
-        path = Path(f'data/predictions/{filename}.parquet')
+        path = Path(f'{PREDICTIONS_DIR}/{filename}.parquet')
         save_predictions(predictions, path)
 
     else:
