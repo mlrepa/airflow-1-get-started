@@ -47,7 +47,7 @@ def get_predictions(data: pd.DataFrame, model) -> pd.DataFrame:
     """
 
     scoring_data = prepare_scoring_data(data)
-    predictions = data[["uuid"]]
+    predictions = data[["uuid"]].copy()
     predictions['predictions'] = model.predict(scoring_data)
 
     return predictions
@@ -67,10 +67,7 @@ def save_predictions(predictions: pd.DataFrame, path: Path) -> None:
     print(f'Predictions saved to: {path}')
 
 
-def predict(
-    ts: pendulum.DateTime,
-    interval: int = 60
-) -> None:
+def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
     """Calculate predictions for the new batch (interval) data.
 
     Args:
@@ -86,9 +83,9 @@ def predict(
     # Prepare data
     path = Path(f'{DATA_FEATURES_DIR}/green_tripdata_2021-02.parquet')
     batch_data = load_data(path, start_time, end_time)
-
+    
     if batch_data.shape[0] > 0:
-
+        
         # Predictions generation
         model = joblib.load('models/model.joblib')
         predictions: pd.DataFrame = get_predictions(batch_data, model)

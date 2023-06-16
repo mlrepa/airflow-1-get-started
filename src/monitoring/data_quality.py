@@ -73,21 +73,21 @@ def parse_data_drift_report(
     )
     del dataset_result['number_of_columns']
 
-    prediction_result: Dict = (
-        metrics['DataDriftTable']['drift_by_columns']['predictions']
-    )
+    # prediction_result: Dict = (
+    #     metrics['DataDriftTable']['drift_by_columns']['predictions']
+    # )
     remove_prediction_fields: List[Text] = [
         'typical_examples_cur', 'typical_examples_ref',
         'typical_words_cur', 'typical_words_ref'
     ]
 
-    for field in remove_prediction_fields:
-        del prediction_result[field]
+    # for field in remove_prediction_fields:
+    #     del prediction_result[field]
 
     dataset_result = numpy_to_standard_types(dataset_result)
-    prediction_result = numpy_to_standard_types(prediction_result)
+    # prediction_result = numpy_to_standard_types(prediction_result)
 
-    return dataset_result, prediction_result
+    return dataset_result#, prediction_result
 
 
 def commit_data_metrics_to_db(
@@ -110,21 +110,24 @@ def commit_data_metrics_to_db(
         parse_data_quality_report(data_quality_report)
     )
 
-    drift_report_results: Tuple[Dict, Dict] = (
-        parse_data_drift_report(data_drift_report)
-    )
-    dataset_drift_result: Dict = drift_report_results[0]
-    data_drift_prediction_result: Dict = drift_report_results[1]
+    # drift_report_results: Tuple[Dict, Dict] = (
+    #     parse_data_drift_report(data_drift_report)
+    # )
+    # dataset_drift_result: Dict = drift_report_results[0]
+    
+    drift_report_results: Dict = parse_data_drift_report(data_drift_report)
+    
+    # data_drift_prediction_result: Dict = drift_report_results[1]
 
-    data_drift_prediction = DataDriftPredictionTable(
-        **data_drift_prediction_result,
-        timestamp=timestamp
-    )
-    add_or_update_by_ts(session, data_drift_prediction)
+    # data_drift_prediction = DataDriftPredictionTable(
+    #     **data_drift_prediction_result,
+    #     timestamp=timestamp
+    # )
+    # add_or_update_by_ts(session, data_drift_prediction)
 
     data_quality = DataQualityTable(
         **dataset_summary_metric_result,
-        **dataset_drift_result,
+        **drift_report_results,
         timestamp=timestamp
     )
     add_or_update_by_ts(session, data_quality)

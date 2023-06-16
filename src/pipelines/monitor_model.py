@@ -1,5 +1,6 @@
 import argparse
 import logging
+from pathlib import Path
 from typing import Dict, List, Text
 
 import pandas as pd
@@ -86,6 +87,7 @@ def monitor_model(
     """
 
     DATA_REF_DIR = 'data/reference'
+    PREDICTIONS_DIR = 'data/predictions'
     target_col = 'duration_min'
     prediction_col = 'predictions'
     num_features = [
@@ -97,6 +99,17 @@ def monitor_model(
     # Prepare current data
     start_time, end_time = get_batch_interval(ts, interval)
     current_data = prepare_current_data(start_time, end_time)
+    
+    # Get predictions for the current data
+    filename = pendulum.parse(end_time).to_date_string()
+    path = Path(f'{PREDICTIONS_DIR}/{filename}.parquet')
+    predictions = pd.read_parquet(path)
+
+    # Merge current data with predictions
+    current_data = current_data.merge(predictions, on='uuid', how='left')
+    current_data = current_data.fillna(current_data.median(numeric_only=True)).fillna(-1)
+    
+    
 
     if current_data.shape[0] == 0:
         # Skip monitoring if current data is empty
