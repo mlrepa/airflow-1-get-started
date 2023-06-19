@@ -16,7 +16,7 @@ airflow/standalone_admin_password.txt
 .vscode
 
 ## Mac OS
-.DS_store
+*/.DS_Store
 
 ## Project
 /data/*
