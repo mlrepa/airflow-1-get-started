@@ -3,7 +3,8 @@ from typing import Text
 from evidently import ColumnMapping
 
 # Database 
-DATABASE_URI: Text = "postgresql://admin:admin@localhost:5432/monitoring_db"
+DATABASE_URI = "postgresql://admin:admin@localhost:5432/monitoring" # rename to MONITORING_DB_URI
+AIRFLOW_DB_URI = "postgresql+psycopg2://admin:admin@airflow-db:5433/airflow"
 
 # Dataset 
 DATA_SOURCE_URL = 'https://d37ci6vzurychx.cloudfront.net/trip-data'

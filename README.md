@@ -62,6 +62,21 @@ pip install -r requirements.txt
 
 ## :rocket: Launch Monitoring Cluster
 
+DATA_DIR=${PWD}
+
+<!-- AIRFLOW_BASE_IMAGE= -->
+
+
+**1. Build PROD environment (Docker containers)**
+```bash
+export AIRFLOW_UID=$(id -u)
+docker build \
+  -t airflow-base-2.6.2 \
+  --build-arg AIRFLOW_UID=${AIRFLOW_UID} \
+  -f docker/airflow_base/Dockerfile \
+  .
+```
+
 ### 1 - Launch a cluster 
 
 ```bash
@@ -138,7 +153,7 @@ The `airflow standalone` command initializes the database, creates a user, and s
 
 ```bash
 export AIRFLOW_HOME=./airflow
-export SQLALCHEMY_SILENCE_UBER_WARNING=1
+# export SQLALCHEMY_SILENCE_UBER_WARNING=1
  
 airflow standalone
 ```

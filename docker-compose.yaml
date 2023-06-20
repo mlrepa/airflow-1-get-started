@@ -1,66 +1,118 @@
 version: "3.9"
 
+x-airflow-common:
+  &airflow-common
+  env_file:
+    - .env
+  image: airflow-base-2.6.2 #${AIRFLOW_BASE_IMAGE}
+  environment:
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://admin:admin@airflow-db:5433/airflow
+    - AIRFLOW_CONN_METADATA_DB=postgresql+psycopg2://admin:admin@airflow-db:5433/airflow
+    - AIRFLOW__CORE__LOAD_EXAMPLES=True
+    - AIRFLOW__CORE__LOGGING_LEVEL=INFO
+  networks: 
+    - monitoring
+  volumes:
+    - ./airflow:/opt/airflow
+    - ${DATA_DIR}:${DATA_DIR}
+  depends_on:
+    airflow-db:
+      condition: service_healthy
 
 services:
 
   airflow-db:
     image: postgres:15.2-alpine
-    environment:
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "admin"
-      POSTGRES_DB: "airflow_db"
-      PGDATA: "/var/lib/postgresql/data/pgdata"
     container_name: airflow-db-postgres
     ports:
     - 5433:5432
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "airflow"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
     networks:
       - monitoring
     volumes:
       - airflow_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d airflow_db -U admin" ]
+      test: [ "CMD-SHELL", "pg_isready -d airflow -U admin" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  monitoring-db:
-    image: postgres:15.2-alpine
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    command: version
     environment:
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "admin"
-      POSTGRES_DB: "monitoring_db"
-      PGDATA: "/var/lib/postgresql/data/pgdata"
-    container_name: monitoring-db-postgres
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+    
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow-webserver
+    command: /bin/bash
     ports:
-    - 5432:5432
-    networks:
-      - monitoring
-    volumes:
-      - monitoring_db_data:/var/lib/postgresql/data
+      - 8080:8080
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d monitoring_db -U admin" ]
+      test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
-
-  grafana:
-    image: grafana/grafana:9.4.7
-    container_name: grafana
+    restart: always
     depends_on:
-      - monitoring-db
-    networks:
-      - monitoring
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-    ports:
-      - 3000:3000
-    user: "0"
-    volumes:
-      - ./grafana/config/grafana_datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
-      - ./grafana/config/grafana_dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
-      - ./grafana/dashboards:/etc/grafana/dashboards
-      - grafana_data:/var/lib/grafana
+      airflow-init:
+        condition: service_completed_successfully
+
+  # airflow-scheduler:
+  #   <<: *airflow-common
+  #   container_name: airflow-scheduler
+  #   command: scheduler
+  #   restart: always
+
+
+  # monitoring-db:
+  #   image: postgres:15.2-alpine
+  #   environment:
+  #     POSTGRES_USER: "admin"
+  #     POSTGRES_PASSWORD: "admin"
+  #     POSTGRES_DB: "monitoring"
+  #     PGDATA: "/var/lib/postgresql/data/pgdata"
+  #   container_name: monitoring-db-postgres
+  #   ports:
+  #   - 5433:5432
+  #   networks:
+  #     - monitoring
+  #   volumes:
+  #     - monitoring_db_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "pg_isready -d monitoring -U admin" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # grafana:
+  #   image: grafana/grafana:9.4.7
+  #   container_name: grafana
+  #   depends_on:
+  #     - monitoring-db
+  #   networks:
+  #     - monitoring
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: admin
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
+  #   ports:
+  #     - 3000:3000
+  #   user: "0"
+  #   volumes:
+  #     - ./grafana/config/grafana_datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+  #     - ./grafana/config/grafana_dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+  #     - ./grafana/dashboards:/etc/grafana/dashboards
+  #     - grafana_data:/var/lib/grafana
 
 
 volumes:
