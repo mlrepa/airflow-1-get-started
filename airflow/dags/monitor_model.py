@@ -18,23 +18,23 @@ from src.pipelines.monitor_model import monitor_model
 )
 def monitor_model_taskflow():
 
-    wait_predictions = ExternalTaskSensor(
-        task_id='wait_predictions',
-        external_dag_id='predict',
-        external_task_id='predict_task',
-        allowed_states=['success'],
-        failed_states=['failed', 'skipped'],
-        execution_date_fn=lambda exec_date: exec_date - relativedelta(minutes=BATCH_INTERVAL),
-        poke_interval=30
-    )
+    # wait_predictions = ExternalTaskSensor(
+    #     task_id='wait_predictions',
+    #     external_dag_id='predict',
+    #     external_task_id='predict_task',
+    #     allowed_states=['success'],
+    #     failed_states=['failed', 'skipped'],
+    #     execution_date_fn=lambda exec_date: exec_date - relativedelta(minutes=BATCH_INTERVAL),
+    #     poke_interval=30
+    # )
 
-    # TODO: add a model sensor
-    # model_path = ...
-    check_model_exist = FileSensor(
-        task_id='check_predictions_file',
-        filepath=f'{Path(".").absolute() / model_path}',
-        timeout=10
-    )
+    # # TODO: add a model sensor
+    # # model_path = ...
+    # check_model_exist = FileSensor(
+    #     task_id='check_predictions_file',
+    #     filepath=f'{Path(".").absolute() / model_path}',
+    #     timeout=10
+    # )
 
     @task()
     def monitor_model_task(logical_date=None):
@@ -42,7 +42,8 @@ def monitor_model_taskflow():
 
     monitor_model_task = monitor_model_task()
     
-    wait_predictions >> check_model_exist >> monitor_model_task
+    # wait_predictions >> check_model_exist >> 
+    monitor_model_task
 
 
 monitor_model_taskflow()

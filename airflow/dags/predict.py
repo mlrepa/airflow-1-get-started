@@ -17,21 +17,21 @@ from src.pipelines.predict import predict
 )
 def predict_taskflow():
     
-    wait_data_monitoring = ExternalTaskSensor(
-        task_id='wait_data_monitoring',
-        external_dag_id='monitor_data',
-        external_task_id='monitor_data_task',
-        allowed_states=['success'],
-        failed_states=['failed', 'skipped'],
-        poke_interval=30
-    )
+    # wait_data_monitoring = ExternalTaskSensor(
+    #     task_id='wait_data_monitoring',
+    #     external_dag_id='monitor_data',
+    #     external_task_id='monitor_data_task',
+    #     allowed_states=['success'],
+    #     failed_states=['failed', 'skipped'],
+    #     poke_interval=30
+    # )
 
-    data_path = f'{FEATURES_DIR}/green_tripdata_2021-02.parquet'
-    check_data_file = FileSensor(
-        task_id='check_data_file',
-        filepath=f'{Path(".").absolute().parent / data_path}',
-        timeout=10
-    )
+    # data_path = f'{FEATURES_DIR}/green_tripdata_2021-02.parquet'
+    # check_data_file = FileSensor(
+    #     task_id='check_data_file',
+    #     filepath=f'{Path(".").absolute().parent / data_path}',
+    #     timeout=10
+    # )
 
     @task()
     def predict_task(logical_date=None):
@@ -39,7 +39,8 @@ def predict_taskflow():
 
     predict_task = predict_task()
     
-    wait_data_monitoring >> check_data_file  >> predict_task
+    # wait_data_monitoring >> check_data_file  >> 
+    predict_task
 
 
 predict_taskflow()
