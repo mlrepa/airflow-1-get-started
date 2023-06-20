@@ -28,9 +28,11 @@ def monitor_model_taskflow():
         poke_interval=30
     )
 
-    check_predictions_file = FileSensor(
+    # TODO: add a model sensor
+    # model_path = ...
+    check_model_exist = FileSensor(
         task_id='check_predictions_file',
-        filepath=f'{Path(".").absolute() /  "data/predictions/{{ ds }}.parquet"}',
+        filepath=f'{Path(".").absolute() / model_path}',
         timeout=10
     )
 
@@ -39,7 +41,8 @@ def monitor_model_taskflow():
         monitor_model(ts=logical_date, interval=BATCH_INTERVAL)
 
     monitor_model_task = monitor_model_task()
-    wait_predictions >> check_predictions_file >> monitor_model_task
+    
+    wait_predictions >> check_model_exist >> monitor_model_task
 
 
 monitor_model_taskflow()

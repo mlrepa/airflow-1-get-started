@@ -1,18 +1,19 @@
 import argparse
 import logging
+import os
 from pathlib import Path
 from typing import Dict, List, Text
 
 import pandas as pd
 import pendulum
-from evidently import ColumnMapping
 from evidently.metric_preset import DataDriftPreset
 from evidently.metrics import DatasetSummaryMetric
 from evidently.report import Report
 
 from src.monitoring.data_quality import commit_data_metrics_to_db
+from src.monitoring.utils import detect_data_drift
 from src.utils.utils import extract_batch_data, get_batch_interval
-from config import FEATURES_DIR, REFERENCE_DIR, COLUMN_MAPPING
+from config import FEATURES_DIR, REFERENCE_DIR, COLUMN_MAPPING, DATA_DRIFT_REPORTS_DIR 
 
 
 def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
@@ -42,51 +43,28 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
     return current_data
 
 
-def generate_reports(
-    current_data: pd.DataFrame,
-    reference_data: pd.DataFrame,
-    column_mapping: ColumnMapping,
-    timestamp: float
-) -> None:
-    """
-    Generate data quality and data drift reports and
-    commit metrics to the database.
+# def generate_reports(
+#     current_data: pd.DataFrame,
+#     reference_data: pd.DataFrame,
+#     column_mapping: ColumnMapping,
+#     timestamp: float
+# ) -> None:
+#     """
+#     Generate data quality and data drift reports and
+#     commit metrics to the database.
 
-    Args:
-        current_data (pd.DataFrame):
-            The current DataFrame with features and predictions.
-        reference_data (pd.DataFrame):
-            The reference DataFrame with features and predictions.
-        column_mapping: ColumnMapping
-            ColumnMapping object to map your column names and feature types
-        timestamp (float):
-            Metric pipeline execution timestamp.
-    """
+#     Args:
+#         current_data (pd.DataFrame):
+#             The current DataFrame with features and predictions.
+#         reference_data (pd.DataFrame):
+#             The reference DataFrame with features and predictions.
+#         column_mapping: ColumnMapping
+#             ColumnMapping object to map your column names and feature types
+#         timestamp (float):
+#             Metric pipeline execution timestamp.
+#     """
 
-    logging.info("Data quality report")
-    data_quality_report = Report(metrics=[DatasetSummaryMetric()])
-    data_quality_report.run(
-        reference_data=reference_data,
-        current_data=current_data,
-        column_mapping=column_mapping
-    )
 
-    logging.info('Data drift report')
-    data_drift_report = Report(metrics=[DataDriftPreset()])
-    data_drift_report.run(
-        reference_data=reference_data,
-        current_data=current_data,
-        column_mapping=column_mapping
-    )
-
-    logging.info('Commit metrics into database')
-    data_quality_report_content: Dict = data_quality_report.as_dict()
-    data_drift_report_content: Dict = data_drift_report.as_dict()
-    commit_data_metrics_to_db(
-        data_quality_report=data_quality_report_content,
-        data_drift_report=data_drift_report_content,
-        timestamp=timestamp
-    )
 
 
 def monitor_data(
@@ -115,20 +93,47 @@ def monitor_data(
     reference_data = ref_data.loc[:, columns]
 
     if current_data.shape[0] == 0:
+        
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
         print("Current data is empty!")
         print("Skip model monitoring")
 
     else:
-        # Prepare column_mapping object
-        # for Evidently reports and generate reports
-        generate_reports(
-            current_data=current_data,
+        
+        # Generate and save reports
+        logging.info("Data quality report")
+        data_quality_report = Report(metrics=[DatasetSummaryMetric()])
+        data_quality_report.run(
             reference_data=reference_data,
-            column_mapping=COLUMN_MAPPING,
+            current_data=current_data,
+            column_mapping=COLUMN_MAPPING
+        )
+
+        logging.info('Data drift report')
+        data_drift_report = Report(metrics=[DataDriftPreset()])
+        data_drift_report.run(
+            reference_data=reference_data,
+            current_data=current_data,
+            column_mapping=COLUMN_MAPPING
+        )
+
+        logging.info('Commit metrics into database')
+        data_quality_report_content: Dict = data_quality_report.as_dict()
+        data_drift_report_content: Dict = data_drift_report.as_dict()
+        commit_data_metrics_to_db(
+            data_quality_report=data_quality_report_content,
+            data_drift_report=data_drift_report_content,
             timestamp=ts.timestamp()
         )
+        
+        logging.info('Save HTML report if Data Drift detected')
+        dataset_drift = detect_data_drift(data_drift_report)
+        path = os.path.join(DATA_DRIFT_REPORTS_DIR, 'data_drift' f"{ts.to_datetime_string()}.html")
+        if dataset_drift: 
+            data_drift_report.save_html(path)
+            
+
 
 
 if __name__ == "__main__":

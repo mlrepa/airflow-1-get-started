@@ -1,4 +1,4 @@
-apache-airflow==2.5.3
+apache-airflow==2.6.2
 evidently==0.2.5
 fastparquet==2023.2.0
 numpy==1.24.2

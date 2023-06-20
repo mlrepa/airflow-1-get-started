@@ -6,7 +6,7 @@ This example shows steps to integrate Evidently into your production pipeline us
 - Save monitoring metrics to [PostgreSQL](https://www.postgresql.org/) database 
 - Visualize ML monitoring dashboards in [Grafana](https://grafana.com/) 
 
-![Gradfana dashboard](static/preview.png "Dashboard preview")
+![Grafana dashboard](static/preview.png "Dashboard preview")
 
 --------
 Project Organization
@@ -118,8 +118,8 @@ python src/pipelines/prepare_reference_data.py  # Save to 'data/reference'
 ### 1 - Run monitoring pipelines manually (optional)
 
 ```bash
-python src/pipelines/predict.py --ts '2021-02-01 01:00:00' --interval 60
 python src/pipelines/monitor_data.py --ts '2021-02-01 01:00:00' --interval 60
+python src/pipelines/predict.py --ts '2021-02-01 01:00:00' --interval 60
 python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
 
 ```
@@ -132,17 +132,16 @@ python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
 
 </details>
 
-### 2 - Launch scheduled monitoring
+### 2 - Run Airflow (standalone)
+The `airflow standalone` command initializes the database, creates a user, and starts all components.
 
-- launch `Airflow`:
-    - run `Airflow` webserver:
-    ```bash
-    ./src/scripts/airflow/webserver.sh
-    ```
-    - run `Airflow` scheduler (in new terminal window):
-    ```bash
-    ./src/scripts/airflow/scheduler.sh
-    ```
+
+```bash
+export AIRFLOW_HOME=./airflow
+export SQLALCHEMY_SILENCE_UBER_WARNING=1
+ 
+airflow standalone
+```
 
 Enter `Airflow` UI: ```http://localhost:8080```
 
@@ -150,7 +149,7 @@ Enter `Airflow` UI: ```http://localhost:8080```
 <summary>Credentials</summary>
 
 - *login*: `admin`
-- *password*: `admin`
+- *password*: saved to the `airflow/standalone_admin_password.txt` file (generated on the first run of `airflow standalone`)
 
 </details>
 
