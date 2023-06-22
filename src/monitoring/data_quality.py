@@ -124,13 +124,14 @@ def commit_data_metrics_to_db(
     #     timestamp=timestamp
     # )
     # add_or_update_by_ts(session, data_drift_prediction)
-
+    
     data_quality = DataQualityTable(
         **dataset_summary_metric_result,
         **drift_report_results,
         timestamp=timestamp
     )
-    add_or_update_by_ts(session, data_quality)
+    
+    add_or_update_by_ts(session=session, record=data_quality)
 
     session.commit()
     session.close()

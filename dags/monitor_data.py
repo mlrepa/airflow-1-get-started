@@ -4,7 +4,6 @@ import os
 import pendulum
 
 from config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL
-from src.pipelines.monitor_data import monitor_data
 
 dag = DAG(
     dag_id='monitor_data',

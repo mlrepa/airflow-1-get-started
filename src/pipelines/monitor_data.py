@@ -69,7 +69,7 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
 
 def monitor_data(
     ts: pendulum.DateTime,
-    interval: int = 60
+    interval: int = 60, 
 ) -> None:
     """Build and save data validation reports.
 

@@ -26,6 +26,9 @@ def monitor_model(
         ts (pendulum.DateTime, optional): Timestamp.
         interval (int, optional): Interval. Defaults to 60.
     """
+    
+    print("Create a model performance report = PRINT")
+    logging.info('Create a model performance report - LOGGER')
 
     # Prepare current data
     start_time, end_time = get_batch_interval(ts, interval)
@@ -60,6 +63,7 @@ def monitor_model(
 
         # Generate and save reports
         logging.info("Create a model performance report")
+        print("Create a model performance report")
         model_performance_report = Report(metrics=[RegressionQualityMetric()])
         model_performance_report.run(
             reference_data=reference_data,
@@ -76,6 +80,7 @@ def monitor_model(
         )
            
         logging.info('Save metrics to database')
+        print('Save metrics to database')
         model_performance_report_content: Dict = model_performance_report.as_dict()
         target_drift_report_content: Dict = target_drift_report.as_dict()
         commit_model_metrics_to_db(
@@ -86,7 +91,7 @@ def monitor_model(
         
         logging.info('Save HTML report if Target Drift detected')
         target_drift = detect_target_drift(target_drift_report)
-        path = os.path.join(TARGET_DRIFT_REPORTS_DIR, 'target_drift', f"{ts.to_datetime_string()}.html")
+        path = os.path.join(TARGET_DRIFT_REPORTS_DIR, f"{ts.to_datetime_string()}.html")
         if target_drift: 
             target_drift_report.save_html(path)
 

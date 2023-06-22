@@ -4,7 +4,6 @@ import os
 import pendulum
 
 from config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL
-from src.pipelines.predict import predict
 
 dag = DAG(
     dag_id='predict',

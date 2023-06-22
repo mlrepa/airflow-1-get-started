@@ -39,6 +39,8 @@ def add_or_update_by_ts(
         session.query(type(record))
                .filter_by(timestamp=record.timestamp)
     )
+    
+    print(query)
 
     # If such record found
     if query.count() > 0:

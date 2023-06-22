@@ -80,7 +80,14 @@ docker build \
 ### 1 - Launch a cluster 
 
 ```bash
+export AIRFLOW_UID=$(id -u)
+export PROJECT_DIR=${PWD}
 docker compose up -d
+```
+
+```bash
+export PYTHONPATH=$PYTHONPATH:$PROJECT_DIR:$PROJECT_DIR/src
+export PYTHONPATH=$PROJECT_DIR
 ```
 
 <details>
@@ -112,6 +119,12 @@ python src/scripts/create_db.py
 python src/scripts/drop_db.py
 # Create all tables
 python src/scripts/create_db.py
+```
+
+```bash
+cd $PROJECT_DIR
+export PYTHONPATH=.
+
 ```
 
 </details>
@@ -196,7 +209,7 @@ docker compose down
 - Run the command:
   
 ```bash
-docker compose down -v
+docker compose down -v --remove-orphans
 ```
 
 </details>

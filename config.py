@@ -1,10 +1,15 @@
+import os
 from pathlib import Path
 from typing import Text
 from evidently import ColumnMapping
 
 # Database 
-DATABASE_URI = "postgresql://admin:admin@localhost:5432/monitoring" # rename to MONITORING_DB_URI
-AIRFLOW_DB_URI = "postgresql+psycopg2://admin:admin@airflow-db:5433/airflow"
+monitoring_db_host: Text = os.getenv('MONITORING_DB_LOCALHOST', 'monitoring-db')
+DATABASE_URI   = f"postgresql+psycopg2://admin:admin@{monitoring_db_host}:5432/monitoring_db" # rename to MONITORING_DB_URI
+# DATABASE_URI = "postgresql+psycopg2://admin:admin@localhost:5432/monitoring" # rename to MONITORING_DB_URI - local
+
+airflow_db_host: Text = os.getenv('AIRFLOW_DB_HOST', 'localhost')
+AIRFLOW_DB_URI = f"postgresql+psycopg2://admin:admin@{airflow_db_host}:5432/airflow"
 
 # Dataset 
 DATA_SOURCE_URL = 'https://d37ci6vzurychx.cloudfront.net/trip-data'
