@@ -8,6 +8,7 @@ airflow/unittests.cfg
 airflow-webserver.pid
 airflow/standalone_admin_password.txt
 
+
 ## Configs
 .env
 
@@ -16,15 +17,16 @@ airflow/standalone_admin_password.txt
 .vscode
 
 ## Mac OS
-*/.DS_Store
+*.DS_Store
 
 ## Project
-/data/*
-/db/*
-/grafana/volume
-/models/*
-/reports/*
-/notebooks/*
+data/*
+db/*
+grafana/volume
+models/*
+reports/*
+notebooks/*
+logs/*
 
 ## Python
 venv
