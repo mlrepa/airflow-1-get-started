@@ -17,7 +17,7 @@ airflow/standalone_admin_password.txt
 .vscode
 
 ## Mac OS
-*.DS_Store
+.DS_Store
 
 ## Project
 data/*
@@ -27,6 +27,7 @@ models/*
 reports/*
 notebooks/*
 logs/*
+.dev/*
 
 ## Python
 venv
