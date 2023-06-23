@@ -1,9 +1,14 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.sensors.external_task import ExternalTaskSensor
+from airflow.sensors.filesystem import FileSensor
+
+from dateutil.relativedelta import relativedelta
 import os
+from pathlib import Path
 import pendulum
 
-from config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL
+from config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL, MODELS_DIR
 
 
 dag = DAG(
@@ -19,23 +24,22 @@ with dag:
     PROJECT_DIR = os.environ["PROJECT_DIR"]
     TS = "{{ ts }}" # The DAG run’s logical date 
     
-    # wait_predictions = ExternalTaskSensor(
-    #     task_id='wait_predictions',
-    #     external_dag_id='predict',
-    #     external_task_id='predict_task',
-    #     allowed_states=['success'],
-    #     failed_states=['failed', 'skipped'],
-    #     execution_date_fn=lambda exec_date: exec_date - relativedelta(minutes=BATCH_INTERVAL),
-    #     poke_interval=30
-    # )
-
-    # # TODO: add a model sensor
-    # # model_path = ...
-    # check_model_exist = FileSensor(
-    #     task_id='check_predictions_file',
-    #     filepath=f'{Path(".").absolute() / model_path}',
-    #     timeout=10
-    # )
+    wait_predictions = ExternalTaskSensor(
+        task_id='wait_predictions',
+        external_dag_id='predict',
+        external_task_id='predict_task',
+        allowed_states=['success'],
+        failed_states=['failed', 'skipped'],
+        execution_date_fn=lambda exec_date: exec_date - relativedelta(minutes=BATCH_INTERVAL),
+        poke_interval=30
+    )
+    
+    model_path = f'{Path(PROJECT_DIR).absolute() / f"{MODELS_DIR}/model.joblib"}'
+    check_model_exist = FileSensor(
+        task_id='check_model_exist',
+        filepath=model_path,
+        timeout=10
+    )
     
     monitor_model = BashOperator(
         task_id='monitor_model',
@@ -52,4 +56,5 @@ with dag:
         '''
     )
 
-    monitor_model
+    wait_predictions >> monitor_model
+    check_model_exist >> monitor_model

@@ -18,8 +18,8 @@ with dag:
     PROJECT_DIR = os.environ["PROJECT_DIR"]
     TS = "{{ ts }}" # The DAG run’s logical date 
     
-    predict = BashOperator(
-        task_id='predict',
+    predict_task = BashOperator(
+        task_id='predict_task',
         bash_command=f'''
         
             cd $PROJECT_DIR && echo $PWD && \
@@ -33,4 +33,4 @@ with dag:
         '''
     )
 
-    predict
+    predict_task
