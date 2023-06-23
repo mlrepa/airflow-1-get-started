@@ -13,7 +13,7 @@ from evidently.report import Report
 from src.monitoring.data_quality import commit_data_metrics_to_db
 from src.monitoring.utils import detect_data_drift
 from src.utils.utils import extract_batch_data, get_batch_interval
-from config import FEATURES_DIR, REFERENCE_DIR, COLUMN_MAPPING, DATA_DRIFT_REPORTS_DIR 
+from config import FEATURES_DIR, MONITORING_DB_URI, REFERENCE_DIR, COLUMN_MAPPING, DATA_DRIFT_REPORTS_DIR 
 
 
 def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
@@ -124,7 +124,8 @@ def monitor_data(
         commit_data_metrics_to_db(
             data_quality_report=data_quality_report_content,
             data_drift_report=data_drift_report_content,
-            timestamp=ts.timestamp()
+            timestamp=ts.timestamp(),
+            db_uri=MONITORING_DB_URI
         )
         
         logging.info('Save HTML report if Data Drift detected')

@@ -4,9 +4,8 @@ from typing import Text
 from evidently import ColumnMapping
 
 # Database 
-monitoring_db_host: Text = os.getenv('MONITORING_DB_LOCALHOST', 'monitoring-db')
-DATABASE_URI   = f"postgresql+psycopg2://admin:admin@{monitoring_db_host}:5432/monitoring_db" # rename to MONITORING_DB_URI
-# DATABASE_URI = "postgresql+psycopg2://admin:admin@localhost:5432/monitoring" # rename to MONITORING_DB_URI - local
+_monitoring_db_host: Text = os.getenv('MONITORING_DB_LOCALHOST', 'monitoring-db')
+MONITORING_DB_URI  = f"postgresql+psycopg2://admin:admin@{_monitoring_db_host}:5432/monitoring_db"
 
 airflow_db_host: Text = os.getenv('AIRFLOW_DB_HOST', 'localhost')
 AIRFLOW_DB_URI = f"postgresql+psycopg2://admin:admin@{airflow_db_host}:5432/airflow"
@@ -26,6 +25,9 @@ REFERENCE_DIR = 'data/reference'
 PREDICTIONS_DIR = 'data/predictions'
 TARGET_DRIFT_REPORTS_DIR = 'reports/target_drift'
 DATA_DRIFT_REPORTS_DIR = 'reports/data_drift'
+
+# Models 
+MODELS_DIR = 'models'
 
 # Pipelines
 START_DATE_TIME = '2021-02-01 01:00:00'

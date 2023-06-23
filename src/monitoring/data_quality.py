@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from typing import Dict, List, Text, Tuple
 
-from config import DATABASE_URI
+from config import MONITORING_DB_URI
 from src.utils.db_utils import open_sqa_session, add_or_update_by_ts
 from src.utils.models import (
     DataDriftPredictionTable,
@@ -93,7 +93,8 @@ def parse_data_drift_report(
 def commit_data_metrics_to_db(
     data_quality_report: Dict,
     data_drift_report: Dict,
-    timestamp: float
+    timestamp: float, 
+    db_uri: Text
 ) -> None:
     """Commit data metrics to database.
 
@@ -103,7 +104,7 @@ def commit_data_metrics_to_db(
         timestamp (float): Metrics calculation timestamp
     """
 
-    engine = create_engine(DATABASE_URI)
+    engine = create_engine(db_uri)
     session = open_sqa_session(engine)
 
     dataset_summary_metric_result: Dict = (
