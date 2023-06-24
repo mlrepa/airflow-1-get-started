@@ -84,19 +84,20 @@ def commit_model_metrics_to_db(
     engine = create_engine(db_uri)
     session = open_sqa_session(engine)
 
+    # Save Model Performance metrics
     model_quality_metric_result: Dict = (
         parse_model_performance_report(model_performance_report)
     )
-    target_drift_metric_result: Dict = (
-        parse_target_drift_report(target_drift_report)
-    )
-
     model_performance = ModelPerformanceTable(
         **model_quality_metric_result,
         timestamp=timestamp
     )
     add_or_update_by_ts(session, model_performance)
 
+    # Save Target Drift metrics
+    target_drift_metric_result: Dict = (
+        parse_target_drift_report(target_drift_report)
+    )
     target_drift = TargetDriftTable(
         **target_drift_metric_result,
         timestamp=timestamp

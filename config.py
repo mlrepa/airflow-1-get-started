@@ -5,7 +5,9 @@ from evidently import ColumnMapping
 
 # Database 
 _monitoring_db_host: Text = os.getenv('MONITORING_DB_LOCALHOST', 'monitoring-db')
-MONITORING_DB_URI  = f"postgresql+psycopg2://admin:admin@{_monitoring_db_host}:5432/monitoring_db"
+_port = 5432
+if _monitoring_db_host == 'localhost': _port = 5433
+MONITORING_DB_URI  = f"postgresql+psycopg2://admin:admin@{_monitoring_db_host}:{_port}/monitoring_db"
 
 airflow_db_host: Text = os.getenv('AIRFLOW_DB_HOST', 'localhost')
 AIRFLOW_DB_URI = f"postgresql+psycopg2://admin:admin@{airflow_db_host}:5432/airflow"
@@ -25,6 +27,7 @@ REFERENCE_DIR = 'data/reference'
 PREDICTIONS_DIR = 'data/predictions'
 TARGET_DRIFT_REPORTS_DIR = 'reports/target_drift'
 DATA_DRIFT_REPORTS_DIR = 'reports/data_drift'
+PREDICTION_DRIFT_REPORTS_DIR = 'reports/prediction_drift'
 
 # Models 
 MODELS_DIR = 'models'

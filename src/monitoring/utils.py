@@ -17,3 +17,11 @@ def detect_data_drift(data_drift_report: Report) -> bool:
     
     report = data_drift_report.as_dict()
     return report["metrics"][0]["result"]["dataset_drift"]
+
+def detect_prediction_drift(data_drift_report: Report) -> bool: 
+    """
+    Returns True if Data Drift is detected, else returns False.
+    """
+    
+    report = data_drift_report.as_dict()
+    return report["metrics"][0]["result"]["dataset_drift"]

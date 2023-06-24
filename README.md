@@ -105,6 +105,11 @@ export PYTHONPATH=$PROJECT_DIR
 Create tables for monitoring metrics. 
 
 ```bash
+docker exec -ti airflow-webserver /bin/bash
+```
+
+```bash
+cd $PROJECT_DIR/
 python src/scripts/create_db.py
 ```
 
@@ -121,13 +126,19 @@ python src/scripts/drop_db.py
 python src/scripts/create_db.py
 ```
 
-```bash
+<!-- ```bash
 cd $PROJECT_DIR
 export PYTHONPATH=.
 
-```
+``` -->
 
 </details>
+
+
+### Add a fs_default connection 
+
+Add a `fs_default` connection via  the `Airflow` UI.
+
 
 
 ## :arrow_forward: Download data & train model
@@ -148,6 +159,7 @@ python src/pipelines/prepare_reference_data.py  # Save to 'data/reference'
 ```bash
 python src/pipelines/monitor_data.py --ts '2021-02-01 01:00:00' --interval 60
 python src/pipelines/predict.py --ts '2021-02-01 01:00:00' --interval 60
+python src/pipelines/monitor_prediction.py --ts '2021-02-01 01:00:00' --interval 60
 python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
 
 ```
@@ -157,6 +169,7 @@ python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
 
 -  It's expected to run the `predict` pipeline before monitoring pipelines for each timestamp `--ts` 
 - `monitor_model` pipeline requires ground truth data to test the quality of predictions. We assume that these labels are available for the previous period. The earliest date to run `monitor_model` is '2021-02-01 02:00:00'
+- for debug purpose, you can run monitoring pipelines, in local environment. Just set MONITORING_DB_LOCALHOST variable to `localhost`: `export MONITORING_DB_LOCALHOST='localhost'` 
 
 </details>
 
