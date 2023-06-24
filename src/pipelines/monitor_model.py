@@ -15,6 +15,9 @@ from src.pipelines.monitor_data import prepare_current_data
 from src.utils.utils import get_batch_interval
 from config import PREDICTIONS_DIR, REFERENCE_DIR, COLUMN_MAPPING, TARGET_DRIFT_REPORTS_DIR, MONITORING_DB_URI
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+LOGGER = logging.getLogger("MONITOR_MODEL")
 
 def monitor_model(
     ts: pendulum.DateTime,
@@ -26,9 +29,8 @@ def monitor_model(
         ts (pendulum.DateTime, optional): Timestamp.
         interval (int, optional): Interval. Defaults to 60.
     """
-    
-    print("Create a model performance report = PRINT")
-    logging.info('Create a model performance report - LOGGER')
+
+    LOGGER.info('Start the pipeline')
 
     # Prepare current data
     start_time, end_time = get_batch_interval(ts, interval)
@@ -47,8 +49,8 @@ def monitor_model(
         
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
-        print("Current data is empty!")
-        print("Skip model monitoring")
+        LOGGER.info("Current data is empty!")
+        LOGGER.info("Skip model monitoring")
 
     else:
 
@@ -62,8 +64,7 @@ def monitor_model(
         reference_data = ref_data.loc[:, columns]
 
         # Generate and save reports
-        logging.info("Create a model performance report")
-        print("Create a model performance report")
+        LOGGER.info("Create a model performance report")
         model_performance_report = Report(metrics=[RegressionQualityMetric()])
         model_performance_report.run(
             reference_data=reference_data,
@@ -71,7 +72,7 @@ def monitor_model(
             column_mapping=COLUMN_MAPPING
         )
 
-        logging.info("Target drift report")
+        LOGGER.info("Target drift report")
         target_drift_report = Report(metrics=[ColumnDriftMetric(COLUMN_MAPPING.target)])
         target_drift_report.run(
             reference_data=reference_data,
@@ -79,8 +80,7 @@ def monitor_model(
             column_mapping=COLUMN_MAPPING
         )
            
-        logging.info('Save metrics to database')
-        print('Save metrics to database')
+        LOGGER.info('Save metrics to database')
         model_performance_report_content: Dict = model_performance_report.as_dict()
         target_drift_report_content: Dict = target_drift_report.as_dict()
         commit_model_metrics_to_db(
@@ -90,11 +90,14 @@ def monitor_model(
             db_uri=MONITORING_DB_URI
         )
         
-        logging.info('Save HTML report if Target Drift detected')
+        LOGGER.info('Save HTML report if Target Drift detected')
         target_drift = detect_target_drift(target_drift_report)
         path = os.path.join(TARGET_DRIFT_REPORTS_DIR, f"{ts.to_datetime_string()}.html")
         if target_drift: 
             target_drift_report.save_html(path)
+            
+            
+    LOGGER.info('Complete the pipeline')
 
 
 if __name__ == "__main__":

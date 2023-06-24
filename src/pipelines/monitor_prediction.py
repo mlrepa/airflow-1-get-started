@@ -14,6 +14,10 @@ from src.monitoring.prediction_drift import commit_prediction_drift_metrics_to_d
 from src.utils.utils import get_batch_interval
 from config import MONITORING_DB_URI, REFERENCE_DIR, PREDICTION_DRIFT_REPORTS_DIR, PREDICTIONS_DIR
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+LOGGER = logging.getLogger("MONITOR_PREDICTION")
+
 
 def monitor_prediction(
     ts: pendulum.DateTime,
@@ -26,9 +30,12 @@ def monitor_prediction(
         interval (int, optional): Interval. Defaults to 60.
     """
     
+    LOGGER.info('Start the pipeline')
+    
     # Prepare current data
     start_time, end_time = get_batch_interval(ts, interval)
-    print(start_time, end_time)
+    LOGGER.debug(f"Log time: {start_time}, {end_time}")
+
 
     # Get current data (predictions)
     filename = pendulum.parse(end_time).to_date_string()
@@ -49,13 +56,13 @@ def monitor_prediction(
         
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
-        print("Current data is empty!")
-        print("Skip model monitoring")
+        LOGGER.info("Current data is empty!")
+        LOGGER.info("Skip model monitoring")
 
     else:
         
         # Generate and save reports
-        logging.info("Prediction drift report")
+        LOGGER.info("Prediction drift report")
         prediction_drift_report = Report(metrics=[ColumnDriftMetric(COLUMN_MAPPING.prediction)])
         prediction_drift_report.run(
             reference_data=reference_data,
@@ -64,9 +71,9 @@ def monitor_prediction(
         )
         
         drift_report_metrics: Dict = parse_prediction_drift_report(prediction_drift_report)
-        print(drift_report_metrics)
+        LOGGER.debug(drift_report_metrics)
            
-        logging.info('Save metrics to database')
+        LOGGER.info('Save metrics to database')
         commit_prediction_drift_metrics_to_db(
             drift_report_metrics=drift_report_metrics,
             timestamp=ts.timestamp(),

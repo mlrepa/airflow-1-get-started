@@ -16,6 +16,10 @@ from src.utils.utils import extract_batch_data, get_batch_interval
 from config import FEATURES_DIR, MONITORING_DB_URI, REFERENCE_DIR, COLUMN_MAPPING, DATA_DRIFT_REPORTS_DIR 
 
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+LOGGER = logging.getLogger("MONITOR_DATA_QUALITY")
+
 def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
     """Merge the current data with the corresponding predictions.
 
@@ -39,33 +43,7 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
 
     # Fill missing values
     current_data = current_data.fillna(current_data.median(numeric_only=True)).fillna(-1)
-
     return current_data
-
-
-# def generate_reports(
-#     current_data: pd.DataFrame,
-#     reference_data: pd.DataFrame,
-#     column_mapping: ColumnMapping,
-#     timestamp: float
-# ) -> None:
-#     """
-#     Generate data quality and data drift reports and
-#     commit metrics to the database.
-
-#     Args:
-#         current_data (pd.DataFrame):
-#             The current DataFrame with features and predictions.
-#         reference_data (pd.DataFrame):
-#             The reference DataFrame with features and predictions.
-#         column_mapping: ColumnMapping
-#             ColumnMapping object to map your column names and feature types
-#         timestamp (float):
-#             Metric pipeline execution timestamp.
-#     """
-
-
-
 
 def monitor_data(
     ts: pendulum.DateTime,
@@ -77,6 +55,8 @@ def monitor_data(
         ts (pendulum.DateTime): Timestamp.
         interval (int, optional): Interval. Defaults to 60.
     """
+    
+    LOGGER.info('Start the pipeline')
 
     # Define columns
     columns: List[Text] = COLUMN_MAPPING.numerical_features \
@@ -96,13 +76,13 @@ def monitor_data(
         
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
-        print("Current data is empty!")
-        print("Skip model monitoring")
+        LOGGER.info("Current data is empty!")
+        LOGGER.info("Skip model monitoring")
 
     else:
         
         # Generate and save reports
-        logging.info("Data quality report")
+        LOGGER.info("Data quality report")
         data_quality_report = Report(metrics=[DatasetSummaryMetric()])
         data_quality_report.run(
             reference_data=reference_data,
@@ -110,7 +90,7 @@ def monitor_data(
             column_mapping=COLUMN_MAPPING
         )
 
-        logging.info('Data drift report')
+        LOGGER.info('Data drift report')
         data_drift_report = Report(metrics=[DataDriftPreset()])
         data_drift_report.run(
             reference_data=reference_data,
@@ -118,7 +98,7 @@ def monitor_data(
             column_mapping=COLUMN_MAPPING
         )
 
-        logging.info('Commit metrics into database')
+        LOGGER.info('Commit metrics into database')
         data_quality_report_content: Dict = data_quality_report.as_dict()
         data_drift_report_content: Dict = data_drift_report.as_dict()
         commit_data_metrics_to_db(
@@ -128,11 +108,13 @@ def monitor_data(
             db_uri=MONITORING_DB_URI
         )
         
-        logging.info('Save HTML report if Data Drift detected')
+        LOGGER.info('Save HTML report if Data Drift detected')
         dataset_drift = detect_data_drift(data_drift_report)
         path = os.path.join(DATA_DRIFT_REPORTS_DIR, 'data_drift' f"{ts.to_datetime_string()}.html")
         if dataset_drift: 
             data_drift_report.save_html(path)
+            
+    LOGGER.info('Complete the pipeline')
             
 
 

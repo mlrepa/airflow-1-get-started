@@ -13,6 +13,10 @@ from src.utils.utils import (
 )
 from config import FEATURES_DIR, PREDICTIONS_DIR
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+LOGGER = logging.getLogger("PREDICT")
+
 
 def load_data(path: Path, start_time: Text, end_time: Text) -> pd.DataFrame:
     """Load data from parquet file.
@@ -75,9 +79,12 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
         ts (pendulum.DateTime, optional): Timestamp. Defaults to None.
         interval (int, optional): Interval. Defaults to 60.
     """
+    
+    LOGGER.info('Start the pipeline')
 
     # Compute the batch start and end time
     start_time, end_time = get_batch_interval(ts, interval)
+    LOGGER.debug(start_time, end_time)
 
     # Prepare data
     path = Path(f'{FEATURES_DIR}/green_tripdata_2021-02.parquet')
@@ -88,7 +95,7 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
         # Predictions generation
         model = joblib.load('models/model.joblib')
         predictions: pd.DataFrame = get_predictions(batch_data, model)
-        print(f'predictions shape = {predictions.shape}')
+        LOGGER.debug(f'predictions shape = {predictions.shape}')
 
         # Save predictions
         filename = ts.to_date_string()
@@ -96,7 +103,9 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
         save_predictions(predictions, path)
 
     else:
-        print("No data to predict")
+        LOGGER.info("No data to predict")
+        
+    LOGGER.info('Complete the pipeline')
 
 
 if __name__ == "__main__":
