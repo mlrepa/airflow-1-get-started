@@ -43,7 +43,7 @@ def monitor_prediction(
     current_data = pd.read_parquet(path)
 
     # Prepare reference data
-    ref_path = f'{REFERENCE_DIR}/reference_data_2021-01.parquet'
+    ref_path = Path(f'{REFERENCE_DIR}/reference_data_2021-01.parquet')
     ref_data = pd.read_parquet(ref_path)
     reference_data = ref_data.loc[:, current_data.columns]
 
@@ -81,7 +81,7 @@ def monitor_prediction(
         )
         
         logging.info('Save HTML report if Prediction Drift detected')
-        path = os.path.join(PREDICTION_DRIFT_REPORTS_DIR, f"{ts.to_datetime_string()}.html")
+        path = Path(f"{PREDICTION_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html")
         if drift_report_metrics['drift_detected'] is True: 
             prediction_drift_report.save_html(path)
             

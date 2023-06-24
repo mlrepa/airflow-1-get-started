@@ -93,7 +93,7 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
     if batch_data.shape[0] > 0:
         
         # Predictions generation
-        model = joblib.load('models/model.joblib')
+        model = joblib.load(Path('models/model.joblib'))
         predictions: pd.DataFrame = get_predictions(batch_data, model)
         LOGGER.debug(f'predictions shape = {predictions.shape}')
 

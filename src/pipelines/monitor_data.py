@@ -33,7 +33,7 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
     """
 
     # Get current data (features)
-    data_path = f'{FEATURES_DIR}/green_tripdata_2021-02.parquet'
+    data_path = Path(f'{FEATURES_DIR}/green_tripdata_2021-02.parquet')
     data = pd.read_parquet(data_path)
     current_data = extract_batch_data(
         data,
@@ -68,7 +68,7 @@ def monitor_data(
     current_data = current_data.loc[:, columns]
 
     # Prepare reference data
-    ref_path = f'{REFERENCE_DIR}/reference_data_2021-01.parquet'
+    ref_path = Path(f'{REFERENCE_DIR}/reference_data_2021-01.parquet')
     ref_data = pd.read_parquet(ref_path)
     reference_data = ref_data.loc[:, columns]
 
@@ -110,7 +110,7 @@ def monitor_data(
         
         LOGGER.info('Save HTML report if Data Drift detected')
         dataset_drift = detect_data_drift(data_drift_report)
-        path = os.path.join(DATA_DRIFT_REPORTS_DIR, 'data_drift' f"{ts.to_datetime_string()}.html")
+        path = Path(f"{DATA_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html")
         if dataset_drift: 
             data_drift_report.save_html(path)
             

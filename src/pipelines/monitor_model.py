@@ -55,7 +55,7 @@ def monitor_model(
     else:
 
         # Prepare reference data
-        ref_path = f'{REFERENCE_DIR}/reference_data_2021-01.parquet'
+        ref_path = Path(f'{REFERENCE_DIR}/reference_data_2021-01.parquet')
         ref_data = pd.read_parquet(ref_path)
         columns: List[Text] = COLUMN_MAPPING.numerical_features \
                             + COLUMN_MAPPING.categorical_features \
@@ -92,7 +92,7 @@ def monitor_model(
         
         LOGGER.info('Save HTML report if Target Drift detected')
         target_drift = detect_target_drift(target_drift_report)
-        path = os.path.join(TARGET_DRIFT_REPORTS_DIR, f"{ts.to_datetime_string()}.html")
+        path = Path(f"{TARGET_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html")
         if target_drift: 
             target_drift_report.save_html(path)
             
