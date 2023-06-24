@@ -2,7 +2,7 @@ import numpy as np
 from sqlalchemy import create_engine
 from typing import Dict, List, Text
 
-from config import DATABASE_URI
+from config import MONITORING_DB_URI
 from src.utils.db_utils import open_sqa_session, add_or_update_by_ts
 from src.utils.models import (
     ModelPerformanceTable,
@@ -70,7 +70,8 @@ def parse_target_drift_report(target_drift_report: Dict) -> Dict:
 def commit_model_metrics_to_db(
     model_performance_report: Dict,
     target_drift_report: Dict,
-    timestamp: float
+    timestamp: float,
+    db_uri: Text
 ) -> None:
     """Commit model metrics to database.
 
@@ -80,22 +81,23 @@ def commit_model_metrics_to_db(
         timestamp (float): Metrics calculation timestamp
     """
 
-    engine = create_engine(DATABASE_URI)
+    engine = create_engine(db_uri)
     session = open_sqa_session(engine)
 
+    # Save Model Performance metrics
     model_quality_metric_result: Dict = (
         parse_model_performance_report(model_performance_report)
     )
-    target_drift_metric_result: Dict = (
-        parse_target_drift_report(target_drift_report)
-    )
-
     model_performance = ModelPerformanceTable(
         **model_quality_metric_result,
         timestamp=timestamp
     )
     add_or_update_by_ts(session, model_performance)
 
+    # Save Target Drift metrics
+    target_drift_metric_result: Dict = (
+        parse_target_drift_report(target_drift_report)
+    )
     target_drift = TargetDriftTable(
         **target_drift_metric_result,
         timestamp=timestamp

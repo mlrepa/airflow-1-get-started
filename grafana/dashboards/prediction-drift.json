@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 3,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -55,7 +55,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 8,
         "x": 0,
         "y": 0
       },
@@ -82,7 +82,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  MAX(stattest_name)\nFROM\n  data_drift_prediction",
+          "rawSql": "SELECT\n  MAX(stattest_name)\nFROM\n  prediction_drift",
           "refId": "A",
           "sql": {
             "columns": [
@@ -103,7 +103,7 @@
           }
         }
       ],
-      "title": "Panel Title",
+      "title": "Stat Test",
       "type": "stat"
     },
     {
@@ -133,8 +133,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 7,
+        "x": 8,
         "y": 0
       },
       "id": 8,
@@ -162,7 +162,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  threshold\nFROM\n  data_drift_prediction\n",
+          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  threshold\nFROM\n  prediction_drift\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -183,7 +183,7 @@
           }
         }
       ],
-      "title": "Panel Title",
+      "title": "Threshold",
       "type": "stat"
     },
     {
@@ -191,23 +191,32 @@
         "type": "postgres",
         "uid": "monitoringdbuid"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "continuous-GrYlRd"
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "dark-green",
+                  "index": 0
+                },
+                "100": {
+                  "color": "dark-red",
+                  "index": 1
+                }
+              },
+              "type": "value"
+            }
+          ],
           "thresholds": {
-            "mode": "absolute",
+            "mode": "percentage",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
@@ -216,24 +225,22 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 12,
-        "x": 12,
+        "w": 9,
+        "x": 15,
         "y": 0
       },
-      "id": 2,
+      "id": 12,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^number_of_rows$/",
+          "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
       },
       "pluginVersion": "9.4.7",
       "targets": [
@@ -242,39 +249,88 @@
             "type": "postgres",
             "uid": "monitoringdbuid"
           },
-          "format": "time_series",
-          "group": [],
-          "instant": false,
-          "interval": "",
-          "legendFormat": "{{dataset}}",
-          "metricColumn": "none",
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  number_of_rows\nFROM data_quality",
+          "rawSql": "SELECT SUM(drift_detected::int) AS \"COUNT DRIFTS\" FROM prediction_drift LIMIT 50 ",
           "refId": "A",
-          "select": [
-            [
+          "sql": {
+            "columns": [
               {
-                "params": [
-                  "id"
+                "alias": "\"COUNT_DRIFTS\"",
+                "name": "SUM",
+                "parameters": [
+                  {
+                    "name": "drift_detected",
+                    "type": "functionParameter"
+                  }
                 ],
-                "type": "column"
+                "type": "function"
               }
-            ]
-          ],
-          "table": "target_drift",
-          "timeColumn": "\"timestamp\"",
-          "timeColumnType": "float8",
-          "where": [
-            {
-              "name": "$__unixEpochFilter",
-              "params": [],
-              "type": "macro"
-            }
-          ]
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "prediction_drift"
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "monitoringdbuid"
+          },
+          "editorMode": "builder",
+          "format": "table",
+          "hide": false,
+          "rawSql": "SELECT COUNT(drift_detected) AS \"TOTAL\" FROM prediction_drift LIMIT 50 ",
+          "refId": "B",
+          "sql": {
+            "columns": [
+              {
+                "alias": "\"TOTAL\"",
+                "name": "COUNT",
+                "parameters": [
+                  {
+                    "name": "drift_detected",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "prediction_drift"
+        },
+        {
+          "datasource": {
+            "name": "Expression",
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "$A / $B * 100",
+          "hide": false,
+          "refId": "Percentage of Drifts",
+          "type": "math"
         }
       ],
-      "title": "Row Count",
-      "type": "stat"
+      "title": "Percentage of Drifts",
+      "type": "gauge"
     },
     {
       "datasource": {
@@ -355,7 +411,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  drift_detected::int\nFROM\n  data_drift_prediction\nORDER BY 1",
+          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  drift_detected::int\nFROM\n  prediction_drift\nORDER BY 1",
           "refId": "A",
           "sql": {
             "columns": [
@@ -376,7 +432,7 @@
           }
         }
       ],
-      "title": "Panel Title",
+      "title": "Drifts Detected Timeline",
       "type": "state-timeline"
     },
     {
@@ -469,7 +525,7 @@
           "legendFormat": "{{kind}}",
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  drift_score, threshold\nFROM data_drift_prediction\nORDER BY 1",
+          "rawSql": "SELECT\n  \"timestamp\" AS \"time\",\n  drift_score, threshold\nFROM prediction_drift\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -508,7 +564,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": false,
+  "refresh": "10s",
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -517,13 +573,13 @@
     "list": []
   },
   "time": {
-    "from": "2023-04-10T10:42:38.203Z",
-    "to": "2023-04-10T10:42:46.819Z"
+    "from": "2021-02-01T01:00:00.000Z",
+    "to": "2021-02-01T13:00:00.000Z"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Evidently Numerical Prediction Drift Dashboard",
+  "title": "Prediction Drift",
   "uid": "OrXim9fVz",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }

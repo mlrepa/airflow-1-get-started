@@ -3,11 +3,11 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
+from config import FEATURES_DIR
+
 
 def train() -> None:
     """Train a linear regression model on the given dataset."""
-
-    DATA_DIR = 'data/features'
 
     # Define the target variable, numerical features, and categorical features
     target = 'duration_min'
@@ -18,7 +18,7 @@ def train() -> None:
     cat_features = ['PULocationID', 'DOLocationID']
 
     print("Load train data")
-    data = pd.read_parquet(f'{DATA_DIR}/green_tripdata_2021-01.parquet')
+    data = pd.read_parquet(f'{FEATURES_DIR}/green_tripdata_2021-01.parquet')
 
     # Filter out outliers
     data = data[(data.duration_min >= 1) & (data.duration_min <= 60)]

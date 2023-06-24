@@ -3,34 +3,29 @@ import os
 import requests
 from tqdm import tqdm
 
+from config import DATA_RAW_DIR, DATA_SOURCE_URL, DATA_FILES
+
 
 def download_data(destination: Text):
     """
-    Download a list of files from a specified URL and
+    Download a list of DATA_FILES from a specified URL and
     save them to the given destination directory.
 
     Parameters:
     ----------
     destination : Text
-        The path to the directory where the downloaded files will be saved.
+        The path to the directory where the downloaded DATA_FILES will be saved.
 
     Example:
     -------
     destination_directory = "path/to/destination_directory"
     download_data(destination_directory)
     """
+    
+    print("Download DATA_FILES:")
+    for file in DATA_FILES:
 
-    NYC_SOURCE_URL = 'https://d37ci6vzurychx.cloudfront.net/trip-data'
-
-    files = [
-        "green_tripdata_2021-01.parquet",
-        "green_tripdata_2021-02.parquet"
-    ]
-
-    print("Download files:")
-    for file in files:
-
-        url = f"{NYC_SOURCE_URL}/{file}"
+        url = f"{DATA_SOURCE_URL}/{file}"
         resp = requests.get(url, stream=True)
 
         # Ensure destination directory exists
@@ -38,14 +33,12 @@ def download_data(destination: Text):
         save_path = os.path.join(destination, file)
 
         with open(save_path, "wb") as handle:
-
             total_size = int(resp.headers.get("Content-Length", 0))
             progress_bar = tqdm(
                 total=total_size, desc=file, unit="B", unit_scale=True
             )
 
             for data in resp.iter_content(chunk_size=8192):
-
                 handle.write(data)
                 progress_bar.update(len(data))
 

@@ -1,4 +1,4 @@
-# Enhanced ML Monitoring for  Production Pipelines using Airflow, PostgreSQL, and Grafana
+# Data and Target Drift Detection for Production Pipelines using Evidently, Airflow and Grafana
 This example shows steps to integrate Evidently into your production pipeline using `Airflow`, `PostgreSQL`, and `Grafana`.
 
 - Run production ML pipelines for inference and monitoring with [Airflow](https://airflow.apache.org/). 
@@ -6,58 +6,58 @@ This example shows steps to integrate Evidently into your production pipeline us
 - Save monitoring metrics to [PostgreSQL](https://www.postgresql.org/) database 
 - Visualize ML monitoring dashboards in [Grafana](https://grafana.com/) 
 
-![Gradfana dashboard](static/preview.png "Dashboard preview")
+![Grafana dashboard](static/preview.png "Dashboard preview")
 
 --------
 Project Organization
 ------------
-
-    ├── README.md          <- The top-level README for developers using this project.
+    .
+    ├── airflow            <- Airflow configs
+    ├── dags               <- Airflow DAGs
+    │
     ├── data
     │   ├── features       <- Features for model training and inference.
     │   ├── predictions    <- Generated predictions.
     │   ├── raw            <- The original, immutable data dump.
     │   └── reference      <- Reference datasets for monitoring.
     │
+    ├── docker             <- Dockerfiles
     ├── grafana            <- Configs for Grafana dashboards
+    ├── models             <- Trained and serialized models
     │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    ├── reports            <- Monitoring reports
+    │   ├── data_drift     
+    │   ├── prediction_drift
+    │   └── target_drift
     │
     ├── src                <- Source code for use in this project.
     │   ├── monitoring     <- Common code for monitoring 
-    │   │
     │   ├── pipelines      <- Source code for all pipelines
-    │   │
     │   ├── scripts        <- Helper scripts
-    │   │
     │   ├── utils          <- Utility functions and classes 
-    │
+    │ 
     └── static             <- Assets for docs 
-
-
---------
+    
 
 ## :woman_technologist: Installation
 
-### 1. Fork / Clone this repository
+### 1 - Fork / Clone this repository
 
 Get the tutorial example code:
 
 ```bash
 git clone git@github.com:evidentlyai/evidently.git
-cd evidently/examples/integrations/airflow_postgres_grafana_batch_monitoring
+cd evidently/examples/integrations/airflow_drift_detection
 ```
 
-### 2. Create virtual environment
-
-Create virtual environment named `.venv` and install python libraries
-
+### 2 - Build base Docker image
 ```bash
-python3 -m venv .venv
-echo "export PYTHONPATH=$PWD" >> .venv/bin/activate
-source .venv/bin/activate
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
+export AIRFLOW_UID=$(id -u)
+docker build \
+  -t airflow-base-2.6.2 \
+  --build-arg AIRFLOW_UID=${AIRFLOW_UID} \
+  -f docker/airflow_base/Dockerfile \
+  .
 ```
 
 ## :rocket: Launch Monitoring Cluster
@@ -65,14 +65,18 @@ pip install -r requirements.txt
 ### 1 - Launch a cluster 
 
 ```bash
+export AIRFLOW_UID=$(id -u)
+export PROJECT_DIR=${PWD}
 docker compose up -d
 ```
 
 <details>
-<summary>The cluster components are specified in the `docker-compose.yaml`</summary>
+<summary>The cluster components are specified in the `docker-compose.yaml` </summary>
 
-- `airflow` - `Airflow` UI, available on [http://localhost:8080](http://localhost:8080)
-- `monitoring-db` - `PostgreSQL`, available on [http://localhost:5432](http://localhost:5432)
+- `airflow-webserver` - Airflow UI, available on [http://localhost:8080](http://localhost:8080)
+- `airflow-scheduler` - Airflow Scheduler (doesn't hae exposed endpoints)
+- `airflow-db` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
+- `monitoring-db` - `PostgreSQL`, available on [http://localhost:5433](http://localhost:5432)
 - `grafana` - `Grafana` dashboards, available on [http://localhost:3000](http://localhost:3000)
 
 </details>
@@ -83,6 +87,12 @@ docker compose up -d
 Create tables for monitoring metrics. 
 
 ```bash
+
+# Enter container of airflow-webserver
+docker exec -ti airflow-webserver /bin/bash
+
+# Create tables for monitoring metrics (inside airflow-webserver)
+cd $PROJECT_DIR/
 python src/scripts/create_db.py
 ```
 
@@ -102,7 +112,22 @@ python src/scripts/create_db.py
 </details>
 
 
-## :arrow_forward: Download data & train model
+### 3 - Set up Airflow variables and connections
+
+To use the [FileSensor](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/file.html) to detect files required by DAGs, you need to have connection defined to use it (pass connection id via `fs_conn_id`). Default connection is `fs_default`
+
+```bash 
+
+# Enter container of airflow-webserver
+docker exec -ti airflow-webserver /bin/bash
+              
+# Add a `fs_default` connection 
+airflow connections add fs_default --conn-type fs
+
+``` 
+
+
+### 4 - Download data & train model
 
 This is a preparation step. This examples requires some data and a trained model.
 
@@ -113,38 +138,9 @@ python src/pipelines/train.py                   # Save trained model to 'models/
 python src/pipelines/prepare_reference_data.py  # Save to 'data/reference'
 ```
 
-## :tv: Pipelines and Monitoring dashboards
+### 5 - Open Monitoring Dashboards (Grafana)
 
-### 1 - Run monitoring pipelines manually (optional)
-
-```bash
-python src/pipelines/predict.py --ts '2021-02-01 01:00:00' --interval 60
-python src/pipelines/monitor_data.py --ts '2021-02-01 01:00:00' --interval 60
-python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
-
-```
-
-<details>
-<summary>Notes</summary>
-
--  It's expected to run the `predict` pipeline before monitoring pipelines for each timestamp `--ts` 
-- `monitor_model` pipeline requires ground truth data to test the quality of predictions. We assume that these labels are available for the previous period. The earliest date to run `monitor_model` is '2021-02-01 02:00:00'
-
-</details>
-
-### 2 - Launch scheduled monitoring
-
-- launch `Airflow`:
-    - run `Airflow` webserver:
-    ```bash
-    ./src/scripts/airflow/webserver.sh
-    ```
-    - run `Airflow` scheduler (in new terminal window):
-    ```bash
-    ./src/scripts/airflow/scheduler.sh
-    ```
-
-Enter `Airflow` UI: ```http://localhost:8080```
+##### Enter Airflow UI and run DAGs: [http://localhost:8080](http://localhost:8080)
 
 <details>
 <summary>Credentials</summary>
@@ -155,9 +151,7 @@ Enter `Airflow` UI: ```http://localhost:8080```
 </details>
 
 
-### 4 - Open Monitoring Dashboards (Grafana)
-
-Enter Grafana UI: ```http://localhost:3000```
+##### Enter Grafana UI and open Monitoring Dashboards: [http://localhost:3000](http://localhost:3000)
 
 <details>
 <summary>Credentials</summary>
@@ -166,6 +160,7 @@ Enter Grafana UI: ```http://localhost:3000```
 - *password*: `admin`
 
 </details>
+
 
 
 ## :checkered_flag: Stop cluster
@@ -182,7 +177,48 @@ docker compose down
 - Run the command:
   
 ```bash
-docker compose down -v
+docker compose down -v --remove-orphans
 ```
+
+</details>
+
+## :tv: Develop and Debug Monitoring Pipelines
+- In case you want to develop, run or debug Pipelines in Python Virtual Environment
+- Create virtual environment named `.venv` and install python libraries
+
+### 1 - Create Python Virtual Environment
+  
+```bash
+python3 -m venv .venv
+echo "export PYTHONPATH=$PWD" >> .venv/bin/activate
+source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+```
+</details>
+
+
+### 2 - Set up Environment Variables 
+For debug purpose, you can run monitoring pipelines, in local environment. 
+To make Just set MONITORING_DB_HOST variable to `localhost`: `export MONITORING_DB_URI='localhost'` 
+```bash 
+export MONITORING_DB_HOST="localhost"
+```
+
+
+### 3 - Run monitoring pipelines
+
+```bash
+python src/pipelines/monitor_data.py --ts '2021-02-01 01:00:00' --interval 60
+python src/pipelines/predict.py --ts '2021-02-01 01:00:00' --interval 60
+python src/pipelines/monitor_prediction.py --ts '2021-02-01 01:00:00' --interval 60
+python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
+```
+
+<details>
+<summary>Notes</summary>
+
+-  It's expected to run the `predict` pipeline before monitoring pipelines for each timestamp `--ts` 
+- `monitor_model` pipeline requires ground truth data to test the quality of predictions. We assume that these labels are available for the previous period. The earliest date to run `monitor_model` is '2021-02-01 02:00:00'
 
 </details>

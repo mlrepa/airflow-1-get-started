@@ -27,7 +27,6 @@ def get_batch_interval(
 
     start_time = batch_start_time
     end_time = ts
-    print(start_time, end_time)
 
     return start_time, end_time
 

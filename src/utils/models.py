@@ -7,13 +7,13 @@ Base = declarative_base()
 
 # [Data drift]
 
-class DataDriftPredictionTable(Base):
+class PredictionDriftTable(Base):
     """Implement table for prediction column drift metrics.
     Evidently metric functions:
         - DataDriftPreset/DataDriftTable
     """
 
-    __tablename__ = 'data_drift_prediction'
+    __tablename__ = 'prediction_drift'
     id = Column(Integer, primary_key=True)
     timestamp = Column(Float)
     column_name = Column(String)
