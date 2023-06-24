@@ -4,12 +4,12 @@ from typing import Text
 from evidently import ColumnMapping
 
 # Database 
-_monitoring_db_host: Text = os.getenv('MONITORING_DB_LOCALHOST', 'monitoring-db')
+_monitoring_db_host: Text = os.getenv('MONITORING_DB_HOST', 'monitoring-db')
 _port = 5432
 if _monitoring_db_host == 'localhost': _port = 5433
 MONITORING_DB_URI  = f"postgresql+psycopg2://admin:admin@{_monitoring_db_host}:{_port}/monitoring_db"
 
-airflow_db_host: Text = os.getenv('AIRFLOW_DB_HOST', 'localhost')
+airflow_db_host: Text = os.getenv('AIRFLOW_DB_host', 'localhost')
 AIRFLOW_DB_URI = f"postgresql+psycopg2://admin:admin@{airflow_db_host}:5432/airflow"
 
 # Dataset 
