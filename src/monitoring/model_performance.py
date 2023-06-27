@@ -3,7 +3,6 @@ from typing import Dict, List, Text
 import numpy as np
 from sqlalchemy import create_engine
 
-from config import MONITORING_DB_URI
 from src.utils.db_utils import add_or_update_by_ts, open_sqa_session
 from src.utils.models import ModelPerformanceTable, TargetDriftTable
 from src.utils.type_conv import numpy_to_standard_types
@@ -92,8 +91,13 @@ def commit_model_metrics_to_db(
     add_or_update_by_ts(session, model_performance)
 
     # Save Target Drift metrics
-    target_drift_metric_result: Dict = parse_target_drift_report(target_drift_report)
-    target_drift = TargetDriftTable(**target_drift_metric_result, timestamp=timestamp)
+    target_drift_metric_result: Dict = parse_target_drift_report(
+        target_drift_report
+    )
+    target_drift = TargetDriftTable(
+        **target_drift_metric_result,
+        timestamp=timestamp
+    )
     add_or_update_by_ts(session, target_drift)
 
     session.commit()

@@ -1,4 +1,4 @@
-from typing import Dict, List, Text, Tuple
+from typing import Dict, Text, Tuple
 
 from evidently.report import Report
 from sqlalchemy import create_engine
@@ -8,7 +8,9 @@ from src.utils.models import PredictionDriftTable
 from src.utils.type_conv import numpy_to_standard_types
 
 
-def parse_prediction_drift_report(prediction_drift_report: Report) -> Tuple[Dict, Dict]:
+def parse_prediction_drift_report(
+    prediction_drift_report: Report
+) -> Tuple[Dict, Dict]:
     """Parse data drift report and return metrics results.
     Extracting Evidently metrics:
         - DatasetDriftMetric
@@ -36,7 +38,8 @@ def parse_prediction_drift_report(prediction_drift_report: Report) -> Tuple[Dict
     # Rename some fields to meet DB table names
     prediction_result["threshold"] = prediction_result.pop("stattest_threshold")
 
-    # Remove items that doesn't fit DB model (for example 'current', 'reference')
+    # Remove items that doesn't fit DB model
+    # (for example 'current', 'reference')
     db_model = PredictionDriftTable()
     metrics_keys = list(prediction_result.keys())
     for key in metrics_keys:

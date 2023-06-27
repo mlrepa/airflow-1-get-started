@@ -22,10 +22,10 @@ with dag:
     monitor_data = BashOperator(
         task_id="monitor_data",
         bash_command=f"""
-        
+
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-                
+
             python src/pipelines/monitor_data.py \
                 --ts { TS } \
                 --interval { BATCH_INTERVAL }

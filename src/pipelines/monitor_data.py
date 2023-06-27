@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 from pathlib import Path
 from typing import Dict, List, Text
 
@@ -35,12 +34,16 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
     # Get current data (features)
     data_path = Path(f"{FEATURES_DIR}/green_tripdata_2021-02.parquet")
     data = pd.read_parquet(data_path)
-    current_data = extract_batch_data(data, start_time=start_time, end_time=end_time)
+    current_data = extract_batch_data(
+        data,
+        start_time=start_time,
+        end_time=end_time
+    )
 
     # Fill missing values
-    current_data = current_data.fillna(current_data.median(numeric_only=True)).fillna(
-        -1
-    )
+    current_data = (current_data
+                    .fillna(current_data.median(numeric_only=True))
+                    .fillna(-1))
     return current_data
 
 

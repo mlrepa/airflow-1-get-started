@@ -42,10 +42,10 @@ with dag:
     monitor_model = BashOperator(
         task_id="monitor_model",
         bash_command=f"""
-        
+
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-                
+
             python src/pipelines/monitor_model.py \
                 --ts { TS } \
                 --interval { BATCH_INTERVAL }

@@ -22,7 +22,7 @@ def parse_data_quality_report(data_quality_report: Dict) -> Dict:
     assert len(data_quality_report["metrics"]) == 1
     ds_summary_metric: Dict = data_quality_report["metrics"][0]
     assert ds_summary_metric["metric"] == "DatasetSummaryMetric"
-    summary_metric_result: Dict = ds_summary_metric["result"]["current"]
+    summary_metrics: Dict = ds_summary_metric["result"]["current"]
 
     remove_fields: List[Text] = [
         "id_column",
@@ -35,16 +35,16 @@ def parse_data_quality_report(data_quality_report: Dict) -> Dict:
 
     # Remove unused fields
     for field in remove_fields:
-        del summary_metric_result[field]
+        del summary_metrics[field]
 
-    summary_metric_result["summary_metric_number_of_columns"] = summary_metric_result[
+    summary_metrics["summary_metric_number_of_columns"] = summary_metrics[
         "number_of_columns"
     ]
-    del summary_metric_result["number_of_columns"]
+    del summary_metrics["number_of_columns"]
 
-    summary_metric_result = numpy_to_standard_types(summary_metric_result)
+    summary_metrics = numpy_to_standard_types(summary_metrics)
 
-    return summary_metric_result
+    return summary_metrics
 
 
 def parse_data_drift_report(data_drift_report: Dict) -> Tuple[Dict, Dict]:
@@ -62,7 +62,8 @@ def parse_data_drift_report(data_drift_report: Dict) -> Tuple[Dict, Dict]:
     """
 
     metrics: Dict = {
-        metric["metric"]: metric["result"] for metric in data_drift_report["metrics"]
+        metric["metric"]: metric["result"]
+        for metric in data_drift_report["metrics"]
     }
 
     dataset_result: Dict = metrics["DatasetDriftMetric"]
@@ -77,7 +78,10 @@ def parse_data_drift_report(data_drift_report: Dict) -> Tuple[Dict, Dict]:
 
 
 def commit_data_metrics_to_db(
-    data_quality_report: Dict, data_drift_report: Dict, timestamp: float, db_uri: Text
+    data_quality_report: Dict,
+    data_drift_report: Dict,
+    timestamp: float,
+    db_uri: Text
 ) -> None:
     """Commit data metrics to database.
 
@@ -90,12 +94,17 @@ def commit_data_metrics_to_db(
     engine = create_engine(db_uri)
     session = open_sqa_session(engine)
 
-    dataset_summary_metric_result: Dict = parse_data_quality_report(data_quality_report)
-
-    drift_report_results: Dict = parse_data_drift_report(data_drift_report)
+    dataset_summary_metric_result: Dict = parse_data_quality_report(
+        data_quality_report
+    )
+    drift_report_results: Dict = parse_data_drift_report(
+        data_drift_report
+    )
 
     data_quality = DataQualityTable(
-        **dataset_summary_metric_result, **drift_report_results, timestamp=timestamp
+        **dataset_summary_metric_result,
+        **drift_report_results,
+        timestamp=timestamp
     )
 
     add_or_update_by_ts(session=session, record=data_quality)

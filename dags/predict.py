@@ -22,10 +22,10 @@ with dag:
     predict_task = BashOperator(
         task_id="predict_task",
         bash_command=f"""
-        
+
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-                
+
             python src/pipelines/predict.py \
                 --ts { TS } \
                 --interval { BATCH_INTERVAL }

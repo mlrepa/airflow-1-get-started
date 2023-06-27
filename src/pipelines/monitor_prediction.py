@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 from pathlib import Path
 from typing import Dict
 
@@ -84,7 +83,9 @@ def monitor_prediction(
         )
 
         logging.info("Save HTML report if Prediction Drift detected")
-        path = Path(f"{PREDICTION_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html")
+        path = Path(
+            f"{PREDICTION_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html"
+        )
         if drift_report_metrics["drift_detected"] is True:
             prediction_drift_report.save_html(path)
 

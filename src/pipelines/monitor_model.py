@@ -1,8 +1,7 @@
 import argparse
 import logging
-import os
 from pathlib import Path
-from typing import Dict, List, Text
+from typing import List, Text
 
 import pandas as pd
 import pendulum
@@ -41,9 +40,9 @@ def monitor_model(ts: pendulum.DateTime, interval: int = 60) -> None:
 
     # Merge current data with predictions
     current_data = current_data.merge(predictions, on="uuid", how="left")
-    current_data = current_data.fillna(current_data.median(numeric_only=True)).fillna(
-        -1
-    )
+    current_data = (current_data
+                    .fillna(current_data.median(numeric_only=True))
+                    .fillna(-1))
 
     if current_data.shape[0] == 0:
 
@@ -75,7 +74,9 @@ def monitor_model(ts: pendulum.DateTime, interval: int = 60) -> None:
         )
 
         LOGGER.info("Target drift report")
-        target_drift_report = Report(metrics=[ColumnDriftMetric(COLUMN_MAPPING.target)])
+        target_drift_report = Report(metrics=[
+            ColumnDriftMetric(COLUMN_MAPPING.target)
+            ])
         target_drift_report.run(
             reference_data=reference_data,
             current_data=current_data,
@@ -83,18 +84,18 @@ def monitor_model(ts: pendulum.DateTime, interval: int = 60) -> None:
         )
 
         LOGGER.info("Save metrics to database")
-        model_performance_report_content: Dict = model_performance_report.as_dict()
-        target_drift_report_content: Dict = target_drift_report.as_dict()
         commit_model_metrics_to_db(
-            model_performance_report=model_performance_report_content,
-            target_drift_report=target_drift_report_content,
+            model_performance_report=model_performance_report.as_dict(),
+            target_drift_report=target_drift_report.as_dict(),
             timestamp=ts.timestamp(),
             db_uri=MONITORING_DB_URI,
         )
 
         LOGGER.info("Save HTML report if Target Drift detected")
         target_drift = detect_target_drift(target_drift_report)
-        path = Path(f"{TARGET_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html")
+        path = Path(
+            f"{TARGET_DRIFT_REPORTS_DIR}/{ts.to_datetime_string()}.html"
+        )
         if target_drift:
             target_drift_report.save_html(path)
 

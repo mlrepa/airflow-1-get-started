@@ -3,7 +3,6 @@ import os
 import pendulum
 from airflow.operators.bash import BashOperator
 from airflow.sensors.external_task import ExternalTaskSensor
-from dateutil.relativedelta import relativedelta
 
 from airflow import DAG
 from config import BATCH_INTERVAL, END_DATE_TIME, START_DATE_TIME
@@ -34,10 +33,10 @@ with dag:
     monitor_prediction = BashOperator(
         task_id="monitor_prediction",
         bash_command=f"""
-        
+
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-                
+
             python src/pipelines/monitor_prediction.py \
                 --ts { TS } \
                 --interval { BATCH_INTERVAL }

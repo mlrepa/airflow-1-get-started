@@ -4,7 +4,7 @@ import numpy as np
 
 
 def numpy_to_standard_types(input_data: Dict) -> Dict:
-    """Convert numpy type values to standard Python types in flat(!) dictionary.
+    """Convert numpy type values to standard Python types in flat(!) dictionary
 
     Args:
         input_data (Dict): Input data (flat dictionary).
