@@ -7,9 +7,7 @@ from src.utils.models import PredictionDriftTable
 from src.utils.type_conv import numpy_to_standard_types
 
 
-def parse_prediction_drift_report(
-    prediction_drift_report: Report
-) -> Tuple[Dict, Dict]:
+def parse_prediction_drift_report(prediction_drift_report: Report) -> Tuple[Dict, Dict]:
     """Parse data drift report and return metrics results.
     Extracting Evidently metrics:
         - DatasetDriftMetric
@@ -26,22 +24,23 @@ def parse_prediction_drift_report(
     prediction_drift_report_dict = prediction_drift_report.as_dict()
 
     metrics: Dict = {
-        metric['metric']: metric['result']
-        for metric in prediction_drift_report_dict['metrics']
+        metric["metric"]: metric["result"]
+        for metric in prediction_drift_report_dict["metrics"]
     }
-    
+
     print("METRICS: ", metrics)
 
-    prediction_result: Dict = metrics['ColumnDriftMetric']
-    
+    prediction_result: Dict = metrics["ColumnDriftMetric"]
+
     # Rename some fields to meet DB table names
-    prediction_result['threshold'] = prediction_result.pop('stattest_threshold')
-    
+    prediction_result["threshold"] = prediction_result.pop("stattest_threshold")
+
     # Remove items that doesn't fit DB model (for example 'current', 'reference')
     db_model = PredictionDriftTable()
     metrics_keys = list(prediction_result.keys())
-    for key in metrics_keys: 
-        if key not in db_model.__table__.columns.keys(): prediction_result.pop(key)
+    for key in metrics_keys:
+        if key not in db_model.__table__.columns.keys():
+            prediction_result.pop(key)
 
     prediction_result = numpy_to_standard_types(prediction_result)
 
@@ -49,9 +48,7 @@ def parse_prediction_drift_report(
 
 
 def commit_prediction_drift_metrics_to_db(
-    drift_report_metrics: Dict,
-    timestamp: float, 
-    db_uri: Text
+    drift_report_metrics: Dict, timestamp: float, db_uri: Text
 ) -> None:
     """Commit data metrics to database.
 
@@ -64,8 +61,7 @@ def commit_prediction_drift_metrics_to_db(
     session = open_sqa_session(engine)
 
     data_drift_prediction = PredictionDriftTable(
-        **drift_report_metrics,
-        timestamp=timestamp
+        **drift_report_metrics, timestamp=timestamp
     )
     add_or_update_by_ts(session, data_drift_prediction)
 

@@ -6,14 +6,11 @@ import joblib
 import pandas as pd
 import pendulum
 
-from src.utils.utils import (
-    get_batch_interval,
-    extract_batch_data,
-    prepare_scoring_data
-)
+from src.utils.utils import get_batch_interval, extract_batch_data, prepare_scoring_data
 from config import FEATURES_DIR, PREDICTIONS_DIR
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("PREDICT")
 
@@ -30,7 +27,7 @@ def load_data(path: Path, start_time: Text, end_time: Text) -> pd.DataFrame:
         pd.DataFrame: Loaded Pandas dataframe.
     """
 
-    print(f'Data source: {path}')
+    print(f"Data source: {path}")
     data = pd.read_parquet(path)
 
     print("Extract batch data")
@@ -53,7 +50,7 @@ def get_predictions(data: pd.DataFrame, model) -> pd.DataFrame:
 
     scoring_data = prepare_scoring_data(data)
     predictions = data[["uuid"]].copy()
-    predictions['predictions'] = model.predict(scoring_data)
+    predictions["predictions"] = model.predict(scoring_data)
 
     return predictions
 
@@ -68,8 +65,8 @@ def save_predictions(predictions: pd.DataFrame, path: Path) -> None:
 
     # Append data to existing file or, create a new one
     is_append = True if path.is_file() else False
-    predictions.to_parquet(path, engine='fastparquet', append=is_append)
-    print(f'Predictions saved to: {path}')
+    predictions.to_parquet(path, engine="fastparquet", append=is_append)
+    print(f"Predictions saved to: {path}")
 
 
 def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
@@ -79,49 +76,41 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
         ts (pendulum.DateTime, optional): Timestamp. Defaults to None.
         interval (int, optional): Interval. Defaults to 60.
     """
-    
-    LOGGER.info('Start the pipeline')
+
+    LOGGER.info("Start the pipeline")
 
     # Compute the batch start and end time
     start_time, end_time = get_batch_interval(ts, interval)
     LOGGER.debug(start_time, end_time)
 
     # Prepare data
-    path = Path(f'{FEATURES_DIR}/green_tripdata_2021-02.parquet')
+    path = Path(f"{FEATURES_DIR}/green_tripdata_2021-02.parquet")
     batch_data = load_data(path, start_time, end_time)
-    
+
     if batch_data.shape[0] > 0:
-        
+
         # Predictions generation
-        model = joblib.load(Path('models/model.joblib'))
+        model = joblib.load(Path("models/model.joblib"))
         predictions: pd.DataFrame = get_predictions(batch_data, model)
-        LOGGER.debug(f'predictions shape = {predictions.shape}')
+        LOGGER.debug(f"predictions shape = {predictions.shape}")
 
         # Save predictions
         filename = ts.to_date_string()
-        path = Path(f'{PREDICTIONS_DIR}/{filename}.parquet')
+        path = Path(f"{PREDICTIONS_DIR}/{filename}.parquet")
         save_predictions(predictions, path)
 
     else:
         LOGGER.info("No data to predict")
-        
-    LOGGER.info('Complete the pipeline')
+
+    LOGGER.info("Complete the pipeline")
 
 
 if __name__ == "__main__":
 
     args_parser = argparse.ArgumentParser()
+    args_parser.add_argument("--ts", dest="ts", required=True)
     args_parser.add_argument(
-        "--ts",
-        dest="ts",
-        required=True
-    )
-    args_parser.add_argument(
-        "--interval",
-        dest="interval",
-        required=False,
-        type=int,
-        default=60
+        "--interval", dest="interval", required=False, type=int, default=60
     )
     args = args_parser.parse_args()
 

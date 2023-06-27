@@ -21,7 +21,7 @@ def download_data(destination: Text):
     destination_directory = "path/to/destination_directory"
     download_data(destination_directory)
     """
-    
+
     print("Download DATA_FILES:")
     for file in DATA_FILES:
 
@@ -34,9 +34,7 @@ def download_data(destination: Text):
 
         with open(save_path, "wb") as handle:
             total_size = int(resp.headers.get("Content-Length", 0))
-            progress_bar = tqdm(
-                total=total_size, desc=file, unit="B", unit_scale=True
-            )
+            progress_bar = tqdm(total=total_size, desc=file, unit="B", unit_scale=True)
 
             for data in resp.iter_content(chunk_size=8192):
                 handle.write(data)
@@ -49,6 +47,6 @@ def download_data(destination: Text):
 
 if __name__ == "__main__":
 
-    DATA_RAW_DIR = 'data/raw'
+    DATA_RAW_DIR = "data/raw"
 
     download_data(DATA_RAW_DIR)
