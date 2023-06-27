@@ -1,9 +1,10 @@
-from airflow import DAG
-from airflow.operators.bash import BashOperator
 import os
-import pendulum
 
-from config import START_DATE_TIME, END_DATE_TIME, BATCH_INTERVAL
+import pendulum
+from airflow.operators.bash import BashOperator
+
+from airflow import DAG
+from config import BATCH_INTERVAL, END_DATE_TIME, START_DATE_TIME
 
 dag = DAG(
     dag_id="monitor_data",

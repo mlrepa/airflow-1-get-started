@@ -1,4 +1,5 @@
 import argparse
+import logging
 from pathlib import Path
 from typing import Text
 
@@ -6,10 +7,9 @@ import joblib
 import pandas as pd
 import pendulum
 
-from src.utils.utils import get_batch_interval, extract_batch_data, prepare_scoring_data
 from config import FEATURES_DIR, PREDICTIONS_DIR
-
-import logging
+from src.utils.utils import (extract_batch_data, get_batch_interval,
+                             prepare_scoring_data)
 
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("PREDICT")

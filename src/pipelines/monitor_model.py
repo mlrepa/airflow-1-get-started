@@ -9,19 +9,12 @@ import pendulum
 from evidently.metrics import ColumnDriftMetric, RegressionQualityMetric
 from evidently.report import Report
 
+from config import (COLUMN_MAPPING, MONITORING_DB_URI, PREDICTIONS_DIR,
+                    REFERENCE_DIR, TARGET_DRIFT_REPORTS_DIR)
 from src.monitoring.model_performance import commit_model_metrics_to_db
 from src.monitoring.utils import detect_target_drift
 from src.pipelines.monitor_data import prepare_current_data
 from src.utils.utils import get_batch_interval
-from config import (
-    PREDICTIONS_DIR,
-    REFERENCE_DIR,
-    COLUMN_MAPPING,
-    TARGET_DRIFT_REPORTS_DIR,
-    MONITORING_DB_URI,
-)
-
-import logging
 
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("MONITOR_MODEL")

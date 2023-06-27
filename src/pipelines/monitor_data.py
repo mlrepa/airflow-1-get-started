@@ -10,19 +10,11 @@ from evidently.metric_preset import DataDriftPreset
 from evidently.metrics import DatasetSummaryMetric
 from evidently.report import Report
 
+from config import (COLUMN_MAPPING, DATA_DRIFT_REPORTS_DIR, FEATURES_DIR,
+                    MONITORING_DB_URI, REFERENCE_DIR)
 from src.monitoring.data_quality import commit_data_metrics_to_db
 from src.monitoring.utils import detect_data_drift
 from src.utils.utils import extract_batch_data, get_batch_interval
-from config import (
-    FEATURES_DIR,
-    MONITORING_DB_URI,
-    REFERENCE_DIR,
-    COLUMN_MAPPING,
-    DATA_DRIFT_REPORTS_DIR,
-)
-
-
-import logging
 
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("MONITOR_DATA_QUALITY")

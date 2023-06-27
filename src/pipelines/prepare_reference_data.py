@@ -3,8 +3,8 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from src.utils.utils import prepare_scoring_data
 from config import FEATURES_DIR, REFERENCE_DIR
+from src.utils.utils import prepare_scoring_data
 
 
 def prepare_reference_dataset():
