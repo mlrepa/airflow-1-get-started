@@ -1,9 +1,10 @@
-from typing import Text
 import os
+from typing import Text
+
 import requests
 from tqdm import tqdm
 
-from config import DATA_RAW_DIR, DATA_SOURCE_URL, DATA_FILES
+from config import DATA_FILES, DATA_RAW_DIR, DATA_SOURCE_URL
 
 
 def download_data(destination: Text):
@@ -14,14 +15,14 @@ def download_data(destination: Text):
     Parameters:
     ----------
     destination : Text
-        The path to the directory where the downloaded DATA_FILES will be saved.
+        The path to the directory with saved DATA_FILES
 
     Example:
     -------
     destination_directory = "path/to/destination_directory"
     download_data(destination_directory)
     """
-    
+
     print("Download DATA_FILES:")
     for file in DATA_FILES:
 
@@ -48,7 +49,5 @@ def download_data(destination: Text):
 
 
 if __name__ == "__main__":
-
-    DATA_RAW_DIR = 'data/raw'
 
     download_data(DATA_RAW_DIR)

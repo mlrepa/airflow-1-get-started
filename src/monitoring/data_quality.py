@@ -1,10 +1,9 @@
-from sqlalchemy import create_engine
 from typing import Dict, List, Text, Tuple
 
-from src.utils.db_utils import open_sqa_session, add_or_update_by_ts
-from src.utils.models import (
-    DataQualityTable
-)
+from sqlalchemy import create_engine
+
+from src.utils.db_utils import add_or_update_by_ts, open_sqa_session
+from src.utils.models import DataQualityTable
 from src.utils.type_conv import numpy_to_standard_types
 
 
@@ -20,33 +19,35 @@ def parse_data_quality_report(data_quality_report: Dict) -> Dict:
         Dict: Dataset summary results.
     """
 
-    assert len(data_quality_report['metrics']) == 1
-    ds_summary_metric: Dict = data_quality_report['metrics'][0]
-    assert ds_summary_metric['metric'] == 'DatasetSummaryMetric'
-    summary_metric_result: Dict = ds_summary_metric['result']['current']
+    assert len(data_quality_report["metrics"]) == 1
+    ds_summary_metric: Dict = data_quality_report["metrics"][0]
+    assert ds_summary_metric["metric"] == "DatasetSummaryMetric"
+    summary_metrics: Dict = ds_summary_metric["result"]["current"]
 
     remove_fields: List[Text] = [
-        'id_column', 'target', 'prediction', 'date_column',
-        'nans_by_columns', 'number_uniques_by_columns'
+        "id_column",
+        "target",
+        "prediction",
+        "date_column",
+        "nans_by_columns",
+        "number_uniques_by_columns",
     ]
 
     # Remove unused fields
     for field in remove_fields:
-        del summary_metric_result[field]
+        del summary_metrics[field]
 
-    summary_metric_result['summary_metric_number_of_columns'] = (
-        summary_metric_result['number_of_columns']
-    )
-    del summary_metric_result['number_of_columns']
+    summary_metrics["summary_metric_number_of_columns"] = summary_metrics[
+        "number_of_columns"
+    ]
+    del summary_metrics["number_of_columns"]
 
-    summary_metric_result = numpy_to_standard_types(summary_metric_result)
+    summary_metrics = numpy_to_standard_types(summary_metrics)
 
-    return summary_metric_result
+    return summary_metrics
 
 
-def parse_data_drift_report(
-    data_drift_report: Dict
-) -> Tuple[Dict, Dict]:
+def parse_data_drift_report(data_drift_report: Dict) -> Tuple[Dict, Dict]:
     """Parse data drift report and return metrics results.
     Extracting Evidently metrics:
         - DatasetDriftMetric
@@ -61,15 +62,15 @@ def parse_data_drift_report(
     """
 
     metrics: Dict = {
-        metric['metric']: metric['result']
-        for metric in data_drift_report['metrics']
+        metric["metric"]: metric["result"]
+        for metric in data_drift_report["metrics"]
     }
 
-    dataset_result: Dict = metrics['DatasetDriftMetric']
-    dataset_result['ds_drift_metric_number_of_columns'] = (
-        dataset_result['number_of_columns']
-    )
-    del dataset_result['number_of_columns']
+    dataset_result: Dict = metrics["DatasetDriftMetric"]
+    dataset_result["ds_drift_metric_number_of_columns"] = dataset_result[
+        "number_of_columns"
+    ]
+    del dataset_result["number_of_columns"]
 
     dataset_result = numpy_to_standard_types(dataset_result)
 
@@ -79,7 +80,7 @@ def parse_data_drift_report(
 def commit_data_metrics_to_db(
     data_quality_report: Dict,
     data_drift_report: Dict,
-    timestamp: float, 
+    timestamp: float,
     db_uri: Text
 ) -> None:
     """Commit data metrics to database.
@@ -93,18 +94,19 @@ def commit_data_metrics_to_db(
     engine = create_engine(db_uri)
     session = open_sqa_session(engine)
 
-    dataset_summary_metric_result: Dict = (
-        parse_data_quality_report(data_quality_report)
+    dataset_summary_metric_result: Dict = parse_data_quality_report(
+        data_quality_report
     )
-    
-    drift_report_results: Dict = parse_data_drift_report(data_drift_report)
-    
+    drift_report_results: Dict = parse_data_drift_report(
+        data_drift_report
+    )
+
     data_quality = DataQualityTable(
         **dataset_summary_metric_result,
         **drift_report_results,
         timestamp=timestamp
     )
-    
+
     add_or_update_by_ts(session=session, record=data_quality)
 
     session.commit()

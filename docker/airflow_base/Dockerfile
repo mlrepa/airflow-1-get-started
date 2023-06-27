@@ -1,57 +1,12 @@
 ARG PYTHON_BASE_IMAGE="apache/airflow:slim-2.6.2-python3.10"
-# ARG PYTHON_BASE_IMAGE="python:3.9.12-bullseye"
 ARG PYTHON_MAJOR_MINOR_VERSION="3.9"
 
-##############################################################################################
-# This is the build image where we build all dependencies
-##############################################################################################
 FROM ${PYTHON_BASE_IMAGE} as airflow-build-image
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 # Make sure noninteractive debian install is used and language variables set
 ENV DEBIAN_FRONTEND=noninteractive LANGUAGE=C.UTF-8 LANG=C.UTF-8 LC_ALL=C.UTF-8 \
     LC_CTYPE=C.UTF-8 LC_MESSAGES=C.UTF-8
-
-# Install curl and gnupg2 - needed for many other installation steps
-# RUN apt-get update \
-#     && apt-get install -y --no-install-recommends \
-#            apt-transport-https \
-#            apt-utils \
-#            build-essential \
-#            ca-certificates \
-#            cmake \
-#            curl \
-#            dumb-init \
-#            freetds-bin \
-#            gcc \
-#            g++ \
-#            git \
-#            gnupg \
-#            gosu \
-#            krb5-user \
-#            ldap-utils \
-#            libffi7 \
-#            libldap-2.4-2 \
-#            libsasl2-2 \
-#            libsasl2-modules \
-#            libssl1.1 \
-#            locales  \
-#            lsb-release \
-#            netcat \
-#            openssh-client \
-#            postgresql-client \
-#            python3-numpy \
-#            rsync \
-#            sasl2-bin \
-#            sqlite3 \
-#            sudo \
-#            tree \
-#            unixodbc \
-#            unzip \
-#            wget \
-#     && apt-get autoremove -yqq --purge \
-#     && apt-get clean \
-#     && rm -rf /var/lib/apt/lists/*
 
 ARG AIRFLOW_PIP_VERSION=22.3
 
@@ -77,12 +32,6 @@ ENV AIRFLOW_GID=${AIRFLOW_GID}
 ARG AIRFLOW_USER_HOME_DIR=/home/airflow
 ENV AIRFLOW_USER_HOME_DIR=${AIRFLOW_USER_HOME_DIR}
 
-# RUN addgroup --gid "${AIRFLOW_GID}" "airflow" && \
-#     useradd -m airflow -u "${AIRFLOW_UID}" -g "${AIRFLOW_GID}" && \
-#     echo 'airflow:airflow' | chpasswd airflow && \
-#     echo "airflow ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/airflow && \
-#     chmod 0440 /etc/sudoers.d/airflow
-
 ENV AIRFLOW_HOME=${AIRFLOW_HOME}
 
 # Make Airflow files belong to the root group and are accessible. This is to accommodate the guidelines from
@@ -94,15 +43,6 @@ RUN mkdir -pv "${AIRFLOW_HOME}"; \
     find "${AIRFLOW_HOME}" -executable -print0 | xargs --null chmod g+x && \
         find "${AIRFLOW_HOME}" -print0 | xargs --null chmod g+rw
 
-# COPY --chown=airflow:root docker/airflow_base/scripts/entrypoint.sh /entrypoint
-# COPY --chown=airflow:root docker/airflow_base/scripts/clean-logs.sh /clean-logs
-# RUN chmod a+x /entrypoint /clean-logs
-
-
-# Make /etc/passwd root-group-writeable so that user can be dynamically added by OpenShift
-# See https://github.com/apache/airflow/issues/9248
-# RUN chmod g=u /etc/passwd
-
 ENV PATH="${AIRFLOW_USER_HOME_DIR}/.local/bin:${PATH}"
 ENV GUNICORN_CMD_ARGS="--worker-tmp-dir /dev/shm"
 
@@ -111,11 +51,3 @@ WORKDIR ${AIRFLOW_HOME}
 EXPOSE 8080
 
 USER ${AIRFLOW_UID}
-
-# RUN git config --global user.name "airflow" && \
-#     git config --global user.email "airflow@example.com"
-
-# ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow"
-
-# ENTRYPOINT ["/usr/bin/dumb-init", "--", "/entrypoint"]
-# CMD ["--help"]

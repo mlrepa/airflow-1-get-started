@@ -5,8 +5,7 @@ import pendulum
 
 
 def get_batch_interval(
-    ts: pendulum.DateTime,
-    interval: int
+    ts: pendulum.DateTime, interval: int
 ) -> Tuple[Text, Text]:
     """Get data batch for an interval.
 
@@ -32,9 +31,7 @@ def get_batch_interval(
 
 
 def extract_batch_data(
-    data: pd.DataFrame,
-    start_time: Text,
-    end_time: Text
+    data: pd.DataFrame, start_time: Text, end_time: Text
 ) -> pd.DataFrame:
     """Extract the batch data for specified time interval.
 
@@ -47,7 +44,7 @@ def extract_batch_data(
         pd.DataFrame: Data batch - Pandas dataframe.
     """
 
-    data = data.set_index('lpep_pickup_datetime')
+    data = data.set_index("lpep_pickup_datetime")
     data = data.sort_index().loc[start_time:end_time]
 
     return data
@@ -65,10 +62,9 @@ def prepare_scoring_data(data: pd.DataFrame) -> pd.DataFrame:
 
     # Define the target variable, numerical features, and categorical features
     num_features = [
-        'passenger_count', 'trip_distance',
-        'fare_amount', 'total_amount'
+        "passenger_count", "trip_distance", "fare_amount", "total_amount"
     ]
-    cat_features = ['PULocationID', 'DOLocationID']
+    cat_features = ["PULocationID", "DOLocationID"]
     data = data.loc[:, num_features + cat_features]
 
     return data
