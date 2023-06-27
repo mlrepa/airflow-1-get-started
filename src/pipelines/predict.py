@@ -19,7 +19,7 @@ LOGGER = logging.getLogger("PREDICT")
 
 
 def load_data(path: Path, start_time: Text, end_time: Text) -> pd.DataFrame:
-    """Load data from parquet file.
+    """Load data and process data
 
     Args:
         path (Path): Path to data.
@@ -63,7 +63,7 @@ def save_predictions(predictions: pd.DataFrame, path: Path) -> None:
 
     Args:
         predictions (pd.DataFrame): Pandas dataframe with predictions column.
-        path (Path): Path to save dataframe.
+        path (Path): Path to save predictions.
     """
 
     # Append data to existing file or, create a new one

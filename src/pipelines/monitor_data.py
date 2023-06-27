@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("MONITOR_DATA_QUALITY")
 
 def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
-    """Merge the current data with the corresponding predictions.
+    """Load and prepare current data.
 
     Args:
         start_time (Text): Start time.
@@ -29,7 +29,7 @@ def prepare_current_data(start_time: Text, end_time: Text) -> pd.DataFrame:
 
     Returns:
         pd.DataFrame:
-            A DataFrame containing the current data merged with predictions.
+            A DataFrame containing the current data
     """
 
     # Get current data (features)

@@ -36,8 +36,6 @@ with dag:
         
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-            echo { TS } && \
-            echo { BATCH_INTERVAL } && \
                 
             python src/pipelines/monitor_prediction.py \
                 --ts { TS } \

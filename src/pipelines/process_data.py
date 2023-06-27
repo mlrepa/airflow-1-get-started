@@ -5,7 +5,7 @@ from config import DATA_RAW_DIR, FEATURES_DIR, DATA_FILES
 
 
 def process() -> None:
-    """Train a linear regression model on the given dataset."""
+    """Process a dataset and save it as a feature dataset"""
 
     # Specify the raw data directory and read the January dataset
     print("Load train data")

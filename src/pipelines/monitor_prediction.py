@@ -23,7 +23,7 @@ def monitor_prediction(
     ts: pendulum.DateTime,
     interval: int = 60, 
 ) -> None:
-    """Build and save data validation reports.
+    """Build and save Prediction Drift reports
 
     Args:
         ts (pendulum.DateTime): Timestamp.

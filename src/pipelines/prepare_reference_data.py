@@ -8,7 +8,7 @@ from config import FEATURES_DIR, REFERENCE_DIR
 
 
 def prepare_reference_dataset():
-    """Prepare reference dataset for the monitoring"""
+    """Prepare a reference dataset for the monitoring"""
 
     target_col = 'duration_min'
     prediction_col = 'predictions'

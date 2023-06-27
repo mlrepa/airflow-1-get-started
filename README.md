@@ -50,7 +50,7 @@ git clone git@github.com:evidentlyai/evidently.git
 cd evidently/examples/integrations/airflow_drift_detection
 ```
 
-### 2 - Build base Docker image
+### 2 - Build a base Docker image
 ```bash
 export AIRFLOW_UID=$(id -u)
 docker build \
@@ -132,6 +132,8 @@ airflow connections add fs_default --conn-type fs
 This is a preparation step. This examples requires some data and a trained model.
 
 ```bash 
+cd $PROJECT_DIR/
+
 python src/pipelines/load_data.py               # Download data for NYC Taxi to 'data/raw'
 python src/pipelines/process_data.py            # Process & save to 'data/features/'
 python src/pipelines/train.py                   # Save trained model to 'models/' 
