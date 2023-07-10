@@ -70,8 +70,9 @@ export PROJECT_DIR=${PWD}
 docker compose up -d
 ```
 
+
 <details>
-<summary>The cluster components are specified in the `docker-compose.yaml` </summary>
+<summary> Details on the cluster components </summary>
 
 - `airflow-webserver` - Airflow UI, available on [http://localhost:8080](http://localhost:8080)
 - `airflow-scheduler` - Airflow Scheduler (doesn't hae exposed endpoints)
@@ -80,6 +81,11 @@ docker compose up -d
 - `grafana` - `Grafana` dashboards, available on [http://localhost:3000](http://localhost:3000)
 
 </details>
+
+Please note that `$PROJECT_DIR` refers to the path of the `evidently_airflow` example directory on your local machine. The above command mounts the example code to the identical path inside the `airflow-webserver` container. This step streamlines access to the code, data, and artifacts within the container. For example,
+
+- if the example code is located in the `/Users/.../evidently_airflow` directory on a Mac,
+- it will be mounted to the identical `/Users/.../evidently_airflow` path within the container.
 
 
 ### 2 - Create monitoring DB structure
