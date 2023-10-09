@@ -1,0 +1,36 @@
+stages:
+
+  load_data:
+    cmd: python src/pipelines/load_data.py
+    deps:
+      - src/pipelines/load_data.py
+    outs:
+      - data/raw/green_tripdata_2021-01.parquet
+      - data/raw/green_tripdata_2021-02.parquet
+
+  process_data:
+    cmd: python src/pipelines/process_data.py
+    deps:
+      - src/pipelines/process_data.py
+      - data/raw/green_tripdata_2021-01.parquet
+      - data/raw/green_tripdata_2021-02.parquet
+    outs:
+      - data/features/green_tripdata_2021-01.parquet
+      - data/features/green_tripdata_2021-02.parquet
+
+  train:
+    cmd: python src/pipelines/train.py
+    deps:
+      - src/pipelines/train.py  
+      - data/features/green_tripdata_2021-01.parquet
+    outs:
+      - models/model.joblib
+  
+  prepare_reference_data:
+    cmd: python src/pipelines/prepare_reference_data.py
+    deps:
+      - src/pipelines/prepare_reference_data.py
+      - models/model.joblib
+    outs:
+      - data/reference/reference_data_2021-01.parquet
+      
