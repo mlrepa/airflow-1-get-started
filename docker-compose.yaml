@@ -47,7 +47,7 @@
 version: '3.8'
 x-airflow-common:
   &airflow-common
-  image: airflow-base-2.6.2 
+  image: airflow-base-2.7.1
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor 

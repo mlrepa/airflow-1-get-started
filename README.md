@@ -54,7 +54,7 @@ cd evidently/examples/integrations/airflow_drift_detection
 ```bash
 export AIRFLOW_UID=$(id -u)
 docker build \
-  -t airflow-base-2.6.2 \
+  -t airflow-base-2.7.1 \
   --build-arg AIRFLOW_UID=${AIRFLOW_UID} \
   -f docker/airflow_base/Dockerfile \
   .
