@@ -46,8 +46,8 @@ Project Organization
 Get the tutorial example code:
 
 ```bash
-git clone git@github.com:evidentlyai/evidently.git
-cd evidently/examples/integrations/airflow_drift_detection
+git clone git@gitlab.com:mlrepa/mlops/mlops-3-nyt-taxi.git
+cd emlops-3-nyt-taxi
 ```
 
 ### 2 - Build a base Docker image
