@@ -25,7 +25,7 @@ with dag:
 
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-            python src/pipelines/train.py
+            dvc exp run
         """
     )
 

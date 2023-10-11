@@ -66,7 +66,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/airflow.cfg:/opt/airflow/airflow.cfg
     - ${PROJECT_DIR}/dags:/opt/airflow/dags
     - ${PROJECT_DIR}:${PROJECT_DIR}
-  user: "${AIRFLOW_UID:-50000}:0"
+  user: "${AIRFLOW_USER_ID:-50000}:0"
   networks:
     - monitoring
   depends_on:

@@ -52,10 +52,10 @@ cd evidently/examples/integrations/airflow_drift_detection
 
 ### 2 - Build a base Docker image
 ```bash
-export AIRFLOW_UID=$(id -u)
+export AIRFLOW_USER_ID=$(id -u)
 docker build \
   -t airflow-base-2.7.1 \
-  --build-arg AIRFLOW_UID=${AIRFLOW_UID} \
+  --build-arg AIRFLOW_USER_ID=${AIRFLOW_USER_ID} \
   -f docker/airflow_base/Dockerfile \
   .
 ```
@@ -65,7 +65,7 @@ docker build \
 ### 1 - Launch a cluster 
 
 ```bash
-export AIRFLOW_UID=$(id -u)
+export AIRFLOW_USER_ID=$(id -u)
 export PROJECT_DIR=${PWD}
 docker compose up -d
 ```
