@@ -1,8 +1,10 @@
-# Data and Target Drift Detection for Production Pipelines using Evidently, Airflow and Grafana
-This example shows steps to integrate Evidently into your production pipeline using `Airflow`, `PostgreSQL`, and `Grafana`.
+# End-to-End MLOps pipelines for NYTaxi Dataset 
 
-- Run production ML pipelines for inference and monitoring with [Airflow](https://airflow.apache.org/). 
-- Generate data quality and model monitoring reports with `EvidenltyAI`
+Note: This example is based on the [airflow_batch_monitoring](https://github.com/evidentlyai/evidently/tree/main/examples/integrations/airflow_batch_monitoring) integration example from Evidently.
+
+- Automate ML training pipeline with DVC
+- Run ML pipelines for training, inference and monitoring with [Airflow](https://airflow.apache.org/). 
+- Generate data quality and model monitoring reports with `Evidenlty`
 - Save monitoring metrics to [PostgreSQL](https://www.postgresql.org/) database 
 - Visualize ML monitoring dashboards in [Grafana](https://grafana.com/) 
 
@@ -46,26 +48,48 @@ Project Organization
 Get the tutorial example code:
 
 ```bash
-git clone git@github.com:evidentlyai/evidently.git
-cd evidently/examples/integrations/airflow_drift_detection
+git clone git@gitlab.com:mlrepa/mlops/mlops-3-nyt-taxi.git
+cd emlops-3-nyt-taxi
 ```
 
 ### 2 - Build a base Docker image
 ```bash
-export AIRFLOW_UID=$(id -u)
+export AIRFLOW_USER_ID=$(id -u)
 docker build \
   -t airflow-base-2.7.1 \
-  --build-arg AIRFLOW_UID=${AIRFLOW_UID} \
+  --build-arg AIRFLOW_USER_ID=${AIRFLOW_USER_ID} \
   -f docker/airflow_base/Dockerfile \
   .
 ```
+
+### 3. Add DVC remote storage (local)
+
+- Add DVC remote path to `config/.env`: DVC_STORAGE=/path/to/dvc/local/storage
+
+- Create directory which will be used as `DVC` remote (`local` remote `DVC` storage)
+
+Example:
+```bash
+export DVC_STORAGE=/tmp/dvc/mlops-3-nyt-taxi
+mkdir -p ${DVC_STORAGE}
+```
+
+Add `DVC` remote:
+
+```bash
+dvc remote add --local -d local ${DVC_STORAGE}
+git add .dvc/config
+git commit -m "Setup DVC remote storage ('local')"
+```
+
+**Note**: option `--local` saves remote configuration to the Git-ignored local config file
 
 ## :rocket: Launch Monitoring Cluster
 
 ### 1 - Launch a cluster 
 
 ```bash
-export AIRFLOW_UID=$(id -u)
+export AIRFLOW_USER_ID=$(id -u)
 export PROJECT_DIR=${PWD}
 docker compose up -d
 ```
@@ -88,7 +112,44 @@ Please note that `$PROJECT_DIR` refers to the path of the `evidently_airflow` ex
 - it will be mounted to the identical `/Users/.../evidently_airflow` path within the container.
 
 
-### 2 - Create monitoring DB structure
+### 2 - Set up Airflow variables and connections
+
+To use the [FileSensor](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/file.html) to detect files required by DAGs, you need to have connection defined to use it (pass connection id via `fs_conn_id`). Default connection is `fs_default`
+
+```bash 
+
+# Enter container of airflow-webserver
+docker exec -ti airflow-webserver /bin/bash
+              
+# Add a `fs_default` connection 
+airflow connections add fs_default --conn-type fs
+
+``` 
+
+For Airflow DAG `scoring` to work, you need to add environment variables on the Airflow cluster side:
+
+```bash
+REPO_URL=<repo_url>                    # URL to the forked repo (`https://`)
+REPO_BRANCH=main
+REPO_USERNAME=<repo_user_name>
+REPO_PASSWORD=<repo_password_or_token> # GitLab Personal Access Token (*User Settings -> Access Tokens*
+```
+
+There are two ways to set variables:
+
+1. Through the Airflow UI http://localhost:8080/: Admin -> Variables
+
+2. Or set each variable individually via terminal (CLI):
+
+```bash
+  # Enter container of airflow scheduler
+  docker exec -ti airflow-scheduler /bin/bash
+
+  # Add variable
+  airflow variables set <var_name> <value>
+```
+
+### 3 - Create monitoring DB structure
 
 Create tables for monitoring metrics. 
 
@@ -118,21 +179,6 @@ python src/scripts/create_db.py
 </details>
 
 
-### 3 - Set up Airflow variables and connections
-
-To use the [FileSensor](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/file.html) to detect files required by DAGs, you need to have connection defined to use it (pass connection id via `fs_conn_id`). Default connection is `fs_default`
-
-```bash 
-
-# Enter container of airflow-webserver
-docker exec -ti airflow-webserver /bin/bash
-              
-# Add a `fs_default` connection 
-airflow connections add fs_default --conn-type fs
-
-``` 
-
-
 ### 4 - Download data & train model
 
 This is a preparation step. This examples requires some data and a trained model.
@@ -145,6 +191,7 @@ python src/pipelines/process_data.py            # Process & save to 'data/featur
 python src/pipelines/train.py                   # Save trained model to 'models/' 
 python src/pipelines/prepare_reference_data.py  # Save to 'data/reference'
 ```
+
 
 ### 5 - Open Monitoring Dashboards (Grafana)
 

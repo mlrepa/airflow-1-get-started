@@ -17,7 +17,8 @@ dag = DAG(
 with dag:
 
     PROJECT_DIR = os.environ["PROJECT_DIR"]
-    TS = "{{ ts }}"  # The DAG run’s logical date
+    # TS = "{{ ts }}"  # The DAG run’s logical date
+    # EXP_NAME = "{{ ds }}"
 
     train = BashOperator(
         task_id="train",
@@ -25,7 +26,7 @@ with dag:
 
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-            python src/pipelines/train.py
+            dvc exp run
         """
     )
 

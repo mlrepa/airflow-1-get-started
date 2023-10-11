@@ -1,5 +1,5 @@
-ARG PYTHON_BASE_IMAGE="apache/airflow:slim-2.6.2-python3.10"
-ARG PYTHON_MAJOR_MINOR_VERSION="3.9"
+ARG PYTHON_BASE_IMAGE="apache/airflow:slim-2.7.1-python3.10"
+ARG PYTHON_MAJOR_MINOR_VERSION="3.10"
 
 FROM ${PYTHON_BASE_IMAGE} as airflow-build-image
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
@@ -24,10 +24,13 @@ RUN pip install --no-cache-dir --upgrade "pip==${AIRFLOW_PIP_VERSION}" && \
     rm requirements.txt 
     
 ARG AIRFLOW_HOME=/opt/airflow
-ARG AIRFLOW_UID="1000"
-ARG AIRFLOW_GID="1000"
-ENV AIRFLOW_UID=${AIRFLOW_UID}
-ENV AIRFLOW_GID=${AIRFLOW_GID}
+ARG AIRFLOW_USER_ID="1000"
+ARG AIRFLOW_GROUP_ID="1000"
+# ENV AIRFLOW_UID=${AIRFLOW_UID}
+# ENV AIRFLOW_UID="1000"
+ENV AIRFLOW_UID=${AIRFLOW_USER_ID}
+ENV AIRFLOW_GID=${AIRFLOW_GROUP_ID}
+
 
 ARG AIRFLOW_USER_HOME_DIR=/home/airflow
 ENV AIRFLOW_USER_HOME_DIR=${AIRFLOW_USER_HOME_DIR}
@@ -46,8 +49,18 @@ RUN mkdir -pv "${AIRFLOW_HOME}"; \
 ENV PATH="${AIRFLOW_USER_HOME_DIR}/.local/bin:${PATH}"
 ENV GUNICORN_CMD_ARGS="--worker-tmp-dir /dev/shm"
 
+USER root
+
+RUN apt-get update && \
+    apt-get install -y git
+
+RUN git config --global user.name $AIRFLOW_UID && \
+    git config --global user.email $AIRFLOW_UID@example.com && \
+    cp /root/.gitconfig /home/airflow/.gitconfig
+
 WORKDIR ${AIRFLOW_HOME}
 
 EXPOSE 8080
 
 USER ${AIRFLOW_UID}
+
