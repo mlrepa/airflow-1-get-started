@@ -62,10 +62,12 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     PROJECT_DIR: ${PROJECT_DIR}
     PYTHONPATH: $PROJECT_DIR
+    AIRFLOW_RUN_DIR: /tmp/airflow_runs
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/airflow.cfg:/opt/airflow/airflow.cfg
     - ${PROJECT_DIR}/dags:/opt/airflow/dags
     - ${PROJECT_DIR}:${PROJECT_DIR}
+    - /tmp:/tmp
   user: "${AIRFLOW_USER_ID:-50000}:0"
   networks:
     - monitoring

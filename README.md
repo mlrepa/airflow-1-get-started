@@ -132,6 +132,44 @@ airflow connections add fs_default --conn-type fs
 
 ``` 
 
+For Airflow DAG `scoring` to work, you need to add environment variables on the Airflow cluster side:
+
+```dotenv
+REPO_URL=<repo_url>
+REPO_BRANCH=main
+REPO_USERNAME=<repo_user_name>
+REPO_PASSWORD=<repo_password_or_token> 
+
+```
+*Notes:* 
+- REPO_URL -  URL to the forked repo 
+- REPO_PASSWORD - GitLab Personal Access Token (*User Settings -> Access Tokens*)
+
+There are two ways to set variables:
+
+Through the Airflow UI http://localhost:8080/: Admin -> Variables
+Upload a .json file (example below, replace with your own values)
+Or set each variable individually.
+
+```json
+{
+  "REPO_URL": "<repo_url>",
+  "REPO_BRANCH": "main",
+  "REPO_USERNAME": "<repo_user_name>",
+  "REPO_PASSWORD": "<repo_password_or_token>",
+}
+```
+
+1. Via terminal (CLI):
+
+```bash
+  # Enter container of airflow scheduler
+  docker exec -ti airflow-scheduler /bin/bash
+
+  # Add variable
+  airflow variables set <var_name> <value>
+```
+
 
 ### 4 - Download data & train model
 
