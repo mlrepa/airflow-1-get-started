@@ -34,19 +34,19 @@ stages:
     outs:
     - path: data/features/green_tripdata_2021-01.parquet
       hash: md5
-      md5: f31cb9dddbe0fdac992bbb528fc39560
-      size: 5163298
+      md5: dedcf47cfa0b13da9b4c111c0791dce7
+      size: 5162764
     - path: data/features/green_tripdata_2021-02.parquet
       hash: md5
-      md5: 81e8d4b669e2792136dc39cfbcefc440
-      size: 4392510
+      md5: 873583a135c5efbb98c1ce39fea18cfc
+      size: 4392645
   train:
     cmd: python src/pipelines/train.py
     deps:
     - path: data/features/green_tripdata_2021-01.parquet
       hash: md5
-      md5: f31cb9dddbe0fdac992bbb528fc39560
-      size: 5163298
+      md5: dedcf47cfa0b13da9b4c111c0791dce7
+      size: 5162764
     - path: src/pipelines/train.py
       hash: md5
       md5: 74b53017551924cb8f1efe19bf19693f
@@ -70,5 +70,5 @@ stages:
     outs:
     - path: data/reference/reference_data_2021-01.parquet
       hash: md5
-      md5: b0713f5395928afc040bfcadace38929
-      size: 1477845
+      md5: ee6966aa98029b2de3d1bf3727d0e873
+      size: 1477346
