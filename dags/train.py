@@ -18,7 +18,7 @@ with dag:
 
     PROJECT_DIR = os.environ["PROJECT_DIR"]
     # TS = "{{ ts }}"  # The DAG run’s logical date
-    EXP_NAME = "{{ ds }}"
+    # EXP_NAME = "{{ ds }}"
 
     train = BashOperator(
         task_id="train",
@@ -26,10 +26,6 @@ with dag:
 
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-            echo ${EXP_NAME} && \
-            dvc exp run -n ${EXP_NAME} && \
-            git add . && git commit -m "New experiment: ${EXP_NAME}" && \
-            git push origin update-train-dag-remote && \
             dvc push -v 
         """
     )

@@ -26,6 +26,8 @@ with dag:
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
 
+            dvc pull -v -r local models/model.joblib 
+            
             python src/pipelines/predict.py \
                 --ts { TS } \
                 --interval { BATCH_INTERVAL }
