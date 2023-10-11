@@ -164,7 +164,7 @@ REPO_PASSWORD=<repo_password_or_token>
 
 ```
 *Notes:* 
-- REPO_URL -  URL to the forked repo 
+- REPO_URL -  URL to the forked repo (`https://`)
 - REPO_PASSWORD - GitLab Personal Access Token (*User Settings -> Access Tokens*)
 
 There are two ways to set variables:
@@ -175,7 +175,7 @@ Or set each variable individually.
 
 ```json
 {
-  "REPO_URL": "<repo_url>",
+  "REPO_URL": "https://...",
   "REPO_BRANCH": "main",
   "REPO_USERNAME": "<repo_user_name>",
   "REPO_PASSWORD": "<repo_password_or_token>",

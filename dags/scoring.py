@@ -52,9 +52,9 @@ with dag:
             
             cp $PROJECT_DIR/models/model.joblib {CLONED_PROJECT_PATH}/models && \
             cp -r $PROJECT_DIR/data/features/* {CLONED_PROJECT_PATH}/data/features && \
+            
             cd {CLONED_PROJECT_PATH} && echo $PWD && \
-
-            export PYTHONPATH=. && echo $PYTHONPATH && \
+            export PYTHONPATH=. && echo $PYTHONPATH && \    
             python src/pipelines/predict.py \
                 --ts {{{{ ts }}}} \
                 --interval { BATCH_INTERVAL } && \
