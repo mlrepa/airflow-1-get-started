@@ -26,7 +26,7 @@ with dag:
 
             cd $PROJECT_DIR && echo $PWD && \
             export PYTHONPATH=. && echo $PYTHONPATH && \
-            dvc push -v 
+            dvc exp run
         """
     )
 

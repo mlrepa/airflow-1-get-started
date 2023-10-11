@@ -1,8 +1,10 @@
-# Data and Target Drift Detection for Production Pipelines using Evidently, Airflow and Grafana
-This example shows steps to integrate Evidently into your production pipeline using `Airflow`, `PostgreSQL`, and `Grafana`.
+# End-to-End MLOps pipelines for NYTaxi Dataset 
 
-- Run production ML pipelines for inference and monitoring with [Airflow](https://airflow.apache.org/). 
-- Generate data quality and model monitoring reports with `EvidenltyAI`
+Note: This example is based on the [airflow_batch_monitoring](https://github.com/evidentlyai/evidently/tree/main/examples/integrations/airflow_batch_monitoring) integration example from Evidently.
+
+- Automate ML training pipeline with DVC
+- Run ML pipelines for training, inference and monitoring with [Airflow](https://airflow.apache.org/). 
+- Generate data quality and model monitoring reports with `Evidenlty`
 - Save monitoring metrics to [PostgreSQL](https://www.postgresql.org/) database 
 - Visualize ML monitoring dashboards in [Grafana](https://grafana.com/) 
 
@@ -110,7 +112,44 @@ Please note that `$PROJECT_DIR` refers to the path of the `evidently_airflow` ex
 - it will be mounted to the identical `/Users/.../evidently_airflow` path within the container.
 
 
-### 2 - Create monitoring DB structure
+### 2 - Set up Airflow variables and connections
+
+To use the [FileSensor](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/file.html) to detect files required by DAGs, you need to have connection defined to use it (pass connection id via `fs_conn_id`). Default connection is `fs_default`
+
+```bash 
+
+# Enter container of airflow-webserver
+docker exec -ti airflow-webserver /bin/bash
+              
+# Add a `fs_default` connection 
+airflow connections add fs_default --conn-type fs
+
+``` 
+
+For Airflow DAG `scoring` to work, you need to add environment variables on the Airflow cluster side:
+
+```bash
+REPO_URL=<repo_url>                    # URL to the forked repo (`https://`)
+REPO_BRANCH=main
+REPO_USERNAME=<repo_user_name>
+REPO_PASSWORD=<repo_password_or_token> # GitLab Personal Access Token (*User Settings -> Access Tokens*
+```
+
+There are two ways to set variables:
+
+1. Through the Airflow UI http://localhost:8080/: Admin -> Variables
+
+2. Or set each variable individually via terminal (CLI):
+
+```bash
+  # Enter container of airflow scheduler
+  docker exec -ti airflow-scheduler /bin/bash
+
+  # Add variable
+  airflow variables set <var_name> <value>
+```
+
+### 3 - Create monitoring DB structure
 
 Create tables for monitoring metrics. 
 
@@ -140,59 +179,6 @@ python src/scripts/create_db.py
 </details>
 
 
-### 3 - Set up Airflow variables and connections
-
-To use the [FileSensor](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/file.html) to detect files required by DAGs, you need to have connection defined to use it (pass connection id via `fs_conn_id`). Default connection is `fs_default`
-
-```bash 
-
-# Enter container of airflow-webserver
-docker exec -ti airflow-webserver /bin/bash
-              
-# Add a `fs_default` connection 
-airflow connections add fs_default --conn-type fs
-
-``` 
-
-For Airflow DAG `scoring` to work, you need to add environment variables on the Airflow cluster side:
-
-```dotenv
-REPO_URL=<repo_url>
-REPO_BRANCH=main
-REPO_USERNAME=<repo_user_name>
-REPO_PASSWORD=<repo_password_or_token> 
-
-```
-*Notes:* 
-- REPO_URL -  URL to the forked repo (`https://`)
-- REPO_PASSWORD - GitLab Personal Access Token (*User Settings -> Access Tokens*)
-
-There are two ways to set variables:
-
-Through the Airflow UI http://localhost:8080/: Admin -> Variables
-Upload a .json file (example below, replace with your own values)
-Or set each variable individually.
-
-```json
-{
-  "REPO_URL": "https://...",
-  "REPO_BRANCH": "main",
-  "REPO_USERNAME": "<repo_user_name>",
-  "REPO_PASSWORD": "<repo_password_or_token>",
-}
-```
-
-1. Via terminal (CLI):
-
-```bash
-  # Enter container of airflow scheduler
-  docker exec -ti airflow-scheduler /bin/bash
-
-  # Add variable
-  airflow variables set <var_name> <value>
-```
-
-
 ### 4 - Download data & train model
 
 This is a preparation step. This examples requires some data and a trained model.
@@ -205,6 +191,7 @@ python src/pipelines/process_data.py            # Process & save to 'data/featur
 python src/pipelines/train.py                   # Save trained model to 'models/' 
 python src/pipelines/prepare_reference_data.py  # Save to 'data/reference'
 ```
+
 
 ### 5 - Open Monitoring Dashboards (Grafana)
 
