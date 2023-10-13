@@ -68,3 +68,10 @@ AIRFLOW_DAGS_PARAMS = {
 }
 
 CLONED_PROJECT_PATH = f"{AIRFLOW_DAGS_PARAMS.get('airflow_run_dir')}/mlops-3-nyt-taxi"
+
+# MLflow parameters
+
+# MLFLOW_TRACKING_URI = "http://localhost:5000"
+MLFLOW_TRACKING_URI = "http://mlflow-server:5000"
+MLFLOW_EXPERIMENT_NAME = "mlops-3-nyt-taxi"
+MLFLOW_DEFAULT_MODEL_NAME = "Model"

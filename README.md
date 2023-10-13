@@ -52,13 +52,24 @@ git clone git@gitlab.com:mlrepa/mlops/mlops-3-nyt-taxi.git
 cd emlops-3-nyt-taxi
 ```
 
-### 2 - Build a base Docker image
+### 2 - Build an Airflow base Docker image
 ```bash
 export AIRFLOW_USER_ID=$(id -u)
 docker build \
   -t airflow-base-2.7.1 \
   --build-arg AIRFLOW_USER_ID=${AIRFLOW_USER_ID} \
   -f docker/airflow_base/Dockerfile \
+  .
+```
+
+### 3 - Build a MLflow Docker image
+
+```bash
+export USER_ID=$(id -u)
+docker build \
+  -t mlflow-server \
+  --build-arg USER_ID=${USER_ID} \
+  -f docker/mlflow/Dockerfile \
   .
 ```
 

@@ -28,6 +28,8 @@ reports/*
 notebooks/*
 logs/*
 .dev/*
+mlruns/*
+mlartifacts/*
 
 ## Python
 venv
