@@ -62,28 +62,6 @@ docker build \
   .
 ```
 
-### 3. Add DVC remote storage (local)
-
-- Add DVC remote path to `config/.env`: DVC_STORAGE=/path/to/dvc/local/storage
-
-- Create directory which will be used as `DVC` remote (`local` remote `DVC` storage)
-
-Example:
-```bash
-export DVC_STORAGE=/tmp/dvc/mlops-3-nyt-taxi
-mkdir -p ${DVC_STORAGE}
-```
-
-Add `DVC` remote:
-
-```bash
-dvc remote add --local -d local ${DVC_STORAGE}
-git add .dvc/config
-git commit -m "Setup DVC remote storage ('local')"
-```
-
-**Note**: option `--local` saves remote configuration to the Git-ignored local config file
-
 ## :rocket: Launch Monitoring Cluster
 
 ### 1 - Launch a cluster 
@@ -178,8 +156,28 @@ python src/scripts/create_db.py
 
 </details>
 
+### 4 - Add DVC remote storage (local)
 
-### 4 - Download data & train model
+<!-- - Add DVC remote path to `config/.env`: DVC_STORAGE=/path/to/dvc/local/storage -->
+
+- Create directory which will be used as `DVC` remote (`local` remote `DVC` storage)
+
+Example:
+```bash
+export DVC_STORAGE=/tmp/dvc/mlops-3-nyt-taxi
+mkdir -p ${DVC_STORAGE}
+```
+
+Add `DVC` remote:
+
+```bash
+cd ${PROJECT_DIR}
+dvc remote add --local -d local ${DVC_STORAGE}
+```
+
+**Note**: option `--local` saves remote configuration to the Git-ignored local config file
+
+### 5 - Download data & train model
 
 This is a preparation step. This examples requires some data and a trained model.
 
