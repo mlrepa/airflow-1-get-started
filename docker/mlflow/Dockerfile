@@ -1,4 +1,4 @@
-FROM ghcr.io/mlflow/mlflow:v2.0.1
+FROM ghcr.io/mlflow/mlflow:v2.7.1
 
 RUN apt-get update && \
     apt-get install -y apt-transport-https build-essential cmake curl gcc g++ git tree sudo unzip wget
