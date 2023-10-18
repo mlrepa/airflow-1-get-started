@@ -76,10 +76,11 @@ def save_predictions(predictions: pd.DataFrame, path: Path) -> None:
     print(f"Predictions saved to: {path}")
 
 
-def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
+def predict(model_uri: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
     """Calculate predictions for the new batch (interval) data.
 
     Args:
+        model_uri (Text): MLflow model URI.
         ts (pendulum.DateTime, optional): Timestamp. Defaults to None.
         interval (int, optional): Interval. Defaults to 60.
     """
@@ -98,12 +99,7 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
 
         # Predictions generation
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT_NAME)
-        exp_runs = mlflow.search_runs([experiment.experiment_id])
-        # TODO: check if at least one run exists
-        last_run_id = exp_runs.loc[0, "run_id"]
-        print(f"Last run id in `{MLFLOW_EXPERIMENT_NAME}` experiment: {last_run_id}")
-        model = mlflow.sklearn.load_model(f"runs:/{last_run_id}/{MLFLOW_DEFAULT_MODEL_NAME}")
+        model = mlflow.sklearn.load_model(model_uri)
         predictions: pd.DataFrame = get_predictions(batch_data, model)
         LOGGER.debug(f"predictions shape = {predictions.shape}")
 
@@ -121,6 +117,7 @@ def predict(ts: pendulum.DateTime, interval: int = 60) -> None:
 if __name__ == "__main__":
 
     args_parser = argparse.ArgumentParser()
+    args_parser.add_argument("--model-uri", dest="model_uri", required=True)
     args_parser.add_argument("--ts", dest="ts", required=True)
     args_parser.add_argument(
         "--interval", dest="interval", required=False, type=int, default=60
@@ -128,4 +125,4 @@ if __name__ == "__main__":
     args = args_parser.parse_args()
 
     ts = pendulum.parse(args.ts)
-    predict(ts=ts, interval=args.interval)
+    predict(model_uri=args.model_uri, ts=ts, interval=args.interval)

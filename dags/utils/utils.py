@@ -1,4 +1,4 @@
-from datetime import date
+import os
 from pathlib import Path
 from typing import Text
 
@@ -11,7 +11,8 @@ def create_dag_run_dir(dag_run_dir: Text) -> bool:
         bool: True if ok
     """
     print(f"Create temporary directory: {dag_run_dir}")
-    Path(dag_run_dir).mkdir(exist_ok=True, parents=True)
+    os.makedirs(dag_run_dir, exist_ok=True)
+    # Path(dag_run_dir).mkdir(exist_ok=True, parents=True)
     return True
 
 

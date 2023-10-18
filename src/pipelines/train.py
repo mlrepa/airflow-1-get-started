@@ -59,7 +59,10 @@ def train() -> None:
     print("Log model to MLflow")
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-    mlflow.sklearn.log_model(model, MLFLOW_DEFAULT_MODEL_NAME)
+    model_info = mlflow.sklearn.log_model(model, MLFLOW_DEFAULT_MODEL_NAME)
+
+    # TODO: register model in model registry
+    mlflow.register_model(model_uri=model_info.model_uri, name=MLFLOW_DEFAULT_MODEL_NAME)
 
 
 if __name__ == "__main__":
