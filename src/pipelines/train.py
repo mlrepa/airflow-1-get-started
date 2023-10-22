@@ -61,7 +61,6 @@ def train() -> None:
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
     model_info = mlflow.sklearn.log_model(model, MLFLOW_DEFAULT_MODEL_NAME)
 
-    # TODO: register model in model registry
     mlflow.register_model(model_uri=model_info.model_uri, name=MLFLOW_DEFAULT_MODEL_NAME)
 
 
