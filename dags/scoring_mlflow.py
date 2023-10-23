@@ -85,10 +85,11 @@ with dag:
                 --ts {{{{ ts }}}} \
                 --interval { BATCH_INTERVAL } && \
             
-            export CUR_PRED_DIR=$PROJECT_DIR/data/predictions/{{{{ ds }}}} && \
+            export SRC_PRED_DIR={CLONED_PROJECT_PATH}/data/predictions/{{{{ ds }}}} && \
+            export DST_PRED_DIR=$PROJECT_DIR/data/predictions/{{{{ ds }}}} && \
             export TS_TIME={{{{macros.datetime.strftime(macros.datetime.fromisoformat(ts), "%H:%M:%S")}}}} && \
-            mkdir -p  $CUR_PRED_DIR && \
-            cp {CLONED_PROJECT_PATH}/data/predictions/{{{{ ds }}}}.parquet $CUR_PRED_DIR/$TS_TIME.parquet
+            mkdir -p $DST_PRED_DIR && \
+            cp $SRC_PRED_DIR/$TS_TIME.parquet $DST_PRED_DIR
         """
     )
 

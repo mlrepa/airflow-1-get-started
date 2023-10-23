@@ -9,67 +9,14 @@ import pendulum
 
 from config import FEATURES_DIR, PREDICTIONS_DIR, MLFLOW_TRACKING_URI
 from src.utils.utils import (
-    extract_batch_data,
+    load_data,
     get_batch_interval,
-    prepare_scoring_data
+    get_predictions,
+    save_predictions
 )
 
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("PREDICT")
-
-
-def load_data(path: Path, start_time: Text, end_time: Text) -> pd.DataFrame:
-    """Load data and process data
-
-    Args:
-        path (Path): Path to data.
-        start_time (Text): Start time.
-        end_time (Text): End time.
-
-    Returns:
-        pd.DataFrame: Loaded Pandas dataframe.
-    """
-
-    print(f"Data source: {path}")
-    data = pd.read_parquet(path)
-
-    print("Extract batch data")
-    data = extract_batch_data(data, start_time=start_time, end_time=end_time)
-    data = data.fillna(data.median(numeric_only=True)).fillna(0)
-
-    return data
-
-
-def get_predictions(data: pd.DataFrame, model) -> pd.DataFrame:
-    """Predictions generation.
-
-    Args:
-        data (pd.DataFrame): Pandas dataframe.
-        model (_type_): Model object.
-
-    Returns:
-        pd.DataFrame: Pandas dataframe with predictions column.
-    """
-
-    scoring_data = prepare_scoring_data(data)
-    predictions = data[["uuid"]].copy()
-    predictions["predictions"] = model.predict(scoring_data)
-
-    return predictions
-
-
-def save_predictions(predictions: pd.DataFrame, path: Path) -> None:
-    """Save predictions to parquet file.
-
-    Args:
-        predictions (pd.DataFrame): Pandas dataframe with predictions column.
-        path (Path): Path to save predictions.
-    """
-
-    # Append data to existing file or, create a new one
-    is_append = True if path.is_file() else False
-    predictions.to_parquet(path, engine="fastparquet", append=is_append)
-    print(f"Predictions saved to: {path}")
 
 
 def predict(model_uri: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
@@ -100,8 +47,10 @@ def predict(model_uri: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
         LOGGER.debug(f"predictions shape = {predictions.shape}")
 
         # Save predictions
-        filename = ts.to_date_string()
-        path = Path(f"{PREDICTIONS_DIR}/{filename}.parquet")
+        pred_date, pred_time = ts.to_date_string(), ts.to_time_string()
+        pred_dir: Path = Path(PREDICTIONS_DIR) / pred_date
+        pred_dir.mkdir(exist_ok=True)
+        path = pred_dir / f"{pred_time}.parquet"
         save_predictions(predictions, path)
 
     else:
