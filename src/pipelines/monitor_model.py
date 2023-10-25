@@ -8,8 +8,13 @@ import pendulum
 from evidently.metrics import ColumnDriftMetric, RegressionQualityMetric
 from evidently.report import Report
 
-from config import (COLUMN_MAPPING, MONITORING_DB_URI, PREDICTIONS_DIR,
-                    REFERENCE_DIR, TARGET_DRIFT_REPORTS_DIR)
+from config import (
+    COLUMN_MAPPING,
+    MONITORING_DB_URI,
+    PREDICTIONS_DIR,
+    REFERENCE_DIR,
+    TARGET_DRIFT_REPORTS_DIR
+)
 from src.monitoring.model_performance import commit_model_metrics_to_db
 from src.monitoring.utils import detect_target_drift
 from src.pipelines.monitor_data import prepare_current_data
@@ -34,17 +39,12 @@ def monitor_model(ts: pendulum.DateTime, interval: int = 60) -> None:
     current_data = prepare_current_data(start_time, end_time)
 
     # Get predictions for the current data
-    filename = pendulum.parse(end_time).to_date_string()
-    path = Path(f"{PREDICTIONS_DIR}/{filename}.parquet")
-    predictions = pd.read_parquet(path)
+    pred_end_dt: pendulum.DateTime = pendulum.parse(end_time)
+    pred_date = pred_end_dt.to_date_string()
+    pred_time = pred_end_dt.to_time_string()
+    path = Path(PREDICTIONS_DIR) / f"{pred_date}/{pred_time}.parquet"
 
-    # Merge current data with predictions
-    current_data = current_data.merge(predictions, on="uuid", how="left")
-    current_data = (current_data
-                    .fillna(current_data.median(numeric_only=True))
-                    .fillna(-1))
-
-    if current_data.shape[0] == 0:
+    if not path.exists():
 
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
@@ -52,6 +52,14 @@ def monitor_model(ts: pendulum.DateTime, interval: int = 60) -> None:
         LOGGER.info("Skip model monitoring")
 
     else:
+
+        predictions = pd.read_parquet(path)
+
+        # Merge current data with predictions
+        current_data = current_data.merge(predictions, on="uuid", how="left")
+        current_data = (current_data
+                        .fillna(current_data.median(numeric_only=True))
+                        .fillna(-1))
 
         # Prepare reference data
         ref_path = Path(f"{REFERENCE_DIR}/reference_data_2021-01.parquet")

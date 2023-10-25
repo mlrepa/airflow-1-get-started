@@ -9,10 +9,16 @@ from evidently import ColumnMapping
 from evidently.metrics import ColumnDriftMetric
 from evidently.report import Report
 
-from config import (MONITORING_DB_URI, PREDICTION_DRIFT_REPORTS_DIR,
-                    PREDICTIONS_DIR, REFERENCE_DIR)
+from config import (
+    MONITORING_DB_URI,
+    PREDICTION_DRIFT_REPORTS_DIR,
+    PREDICTIONS_DIR,
+    REFERENCE_DIR
+)
 from src.monitoring.prediction_drift import (
-    commit_prediction_drift_metrics_to_db, parse_prediction_drift_report)
+    commit_prediction_drift_metrics_to_db,
+    parse_prediction_drift_report
+)
 from src.utils.utils import get_batch_interval
 
 logging.basicConfig(level=logging.DEBUG)
@@ -37,20 +43,12 @@ def monitor_prediction(
     LOGGER.debug(f"Log time: {start_time}, {end_time}")
 
     # Get current data (predictions)
-    filename = pendulum.parse(end_time).to_date_string()
-    path = Path(f"{PREDICTIONS_DIR}/{filename}.parquet")
-    current_data = pd.read_parquet(path)
+    pred_end_dt: pendulum.DateTime = pendulum.parse(end_time)
+    pred_date = pred_end_dt.to_date_string()
+    pred_time = pred_end_dt.to_time_string()
+    path = Path(PREDICTIONS_DIR) / f"{pred_date}/{pred_time}.parquet"
 
-    # Prepare reference data
-    ref_path = Path(f"{REFERENCE_DIR}/reference_data_2021-01.parquet")
-    ref_data = pd.read_parquet(ref_path)
-    reference_data = ref_data.loc[:, current_data.columns]
-
-    # Define Column Mapping object for Prediction Drift
-    COLUMN_MAPPING = ColumnMapping()
-    COLUMN_MAPPING.prediction = "predictions"
-
-    if current_data.shape[0] == 0:
+    if not path.exists():
 
         # Skip monitoring if current data is empty
         # Usually it may happen for few first batches
@@ -58,6 +56,17 @@ def monitor_prediction(
         LOGGER.info("Skip model monitoring")
 
     else:
+
+        current_data = pd.read_parquet(path)
+
+        # Prepare reference data
+        ref_path = Path(f"{REFERENCE_DIR}/reference_data_2021-01.parquet")
+        ref_data = pd.read_parquet(ref_path)
+        reference_data = ref_data.loc[:, current_data.columns]
+
+        # Define Column Mapping object for Prediction Drift
+        COLUMN_MAPPING = ColumnMapping()
+        COLUMN_MAPPING.prediction = "predictions"
 
         # Generate and save reports
         LOGGER.info("Prediction drift report")

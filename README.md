@@ -308,3 +308,25 @@ python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
 - `monitor_model` pipeline requires ground truth data to test the quality of predictions. We assume that these labels are available for the previous period. The earliest date to run `monitor_model` is '2021-02-01 02:00:00'
 
 </details>
+
+
+## Scoring DAGs
+
+Scoring DAGs works such way: 
+
+```clone the project remote repository -> run prediction script -> copy predictions to data/predictions/```
+
+There are two scoring DAGs:
+- `dags/scoring.py`: 
+  - loads model `models/models.joblib` to make predictions  from the  project directory
+  - runs pipeline `src/pipelines/predict.py` to build predictions
+- `dags/scoring_mlflow`:
+  - loads last registered `MLflow` model in **Production** stage if such model exists; fails in other case;
+  - runs pipeline `src/pipelines/predict_mlflow.py` to build predictions
+
+**Notes**:
+- the DAG `dags/scoring_mlflow` requires registered `MLflow` model in production stage
+- pipeline script `srs/pipelines/train.py` register new version of the model
+- therefore, to run DAG `dags/scoring_mlflow` successfully you should to apply stage type **Production** to any model version in [`MLflow` UI](http://localhost:5000/#/models)
+
+More about `MLflow` models and models versioning (*MLflow Model Registry): https://mlflow.org/docs/latest/model-registry.html
