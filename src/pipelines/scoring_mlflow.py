@@ -1,13 +1,14 @@
 import argparse
 import logging
 from pathlib import Path
+import pickle 
 from typing import Text
 
 import mlflow
 import pandas as pd
 import pendulum
 
-from config import FEATURES_DIR, PREDICTIONS_DIR, MLFLOW_TRACKING_URI
+from config import FEATURES_DIR, PREDICTIONS_DIR, MLFLOW_DEFAULT_MODEL_NAME
 from src.utils.utils import (
     load_data,
     get_batch_interval,
@@ -19,11 +20,11 @@ logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger("PREDICT")
 
 
-def predict(model_uri: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
+def predict(model_path: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
     """Calculate predictions for the new batch (interval) data.
 
     Args:
-        model_uri (Text): MLflow model URI.
+        model_path (Text): MLflow model URI.
         ts (pendulum.DateTime, optional): Timestamp. Defaults to None.
         interval (int, optional): Interval. Defaults to 60.
     """
@@ -41,10 +42,17 @@ def predict(model_uri: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
     if batch_data.shape[0] > 0:
 
         # Predictions generation
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        model = mlflow.sklearn.load_model(model_uri)
+        # mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        # model = mlflow.sklearn.load_model(model_path)
+        print("---")
+        print("MODEL_PATH:", model_path)
+        print("---")
+        
+        # model = joblib.load(Path(model_path))
+        model = pickle.load(open(Path(model_path), 'rb'))
         predictions: pd.DataFrame = get_predictions(batch_data, model)
         LOGGER.debug(f"predictions shape = {predictions.shape}")
+        LOGGER.debug(f"predictions shape = {predictions.head}")
 
         # Save predictions
         pred_date, pred_time = ts.to_date_string(), ts.to_time_string()
@@ -62,7 +70,7 @@ def predict(model_uri: Text, ts: pendulum.DateTime, interval: int = 60) -> None:
 if __name__ == "__main__":
 
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument("--model-uri", dest="model_uri", required=True)
+    args_parser.add_argument("--model-path", dest="model_path", required=True)
     args_parser.add_argument("--ts", dest="ts", required=True)
     args_parser.add_argument(
         "--interval", dest="interval", required=False, type=int, default=60
@@ -70,4 +78,4 @@ if __name__ == "__main__":
     args = args_parser.parse_args()
 
     ts = pendulum.parse(args.ts)
-    predict(model_uri=args.model_uri, ts=ts, interval=args.interval)
+    predict(model_path=args.model_path, ts=ts, interval=args.interval)
