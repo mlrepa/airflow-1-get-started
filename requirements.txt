@@ -1,6 +1,7 @@
 dvc==3.25.0
 evidently==0.4.5
 fastparquet==2023.2.0
+jupyterlab
 mlflow==2.7.1
 numpy==1.26.0
 pendulum

@@ -49,7 +49,7 @@ Get the tutorial example code:
 
 ```bash
 git clone git@gitlab.com:mlrepa/mlops/mlops-3-nyt-taxi.git
-cd emlops-3-nyt-taxi
+cd mlops-3-nyt-taxi
 ```
 
 ### 2 - Build an Airflow base Docker image
@@ -114,6 +114,7 @@ docker compose up -d
 - `airflow-db` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
 - `monitoring-db` - `PostgreSQL`, available on [http://localhost:5433](http://localhost:5432)
 - `grafana` - `Grafana` dashboards, available on [http://localhost:3000](http://localhost:3000)
+- `mlflow-server` - MLFlow UI, available on [http://localhost:5000](http://localhost:5000)
 
 </details>
 
@@ -317,7 +318,7 @@ Scoring DAGs works such way:
 ```clone the project remote repository -> run prediction script -> copy predictions to data/predictions/```
 
 There are two scoring DAGs:
-- `dags/scoring.py`: 
+- `dags/scoring_local.py`: 
   - loads model `models/models.joblib` to make predictions  from the  project directory
   - runs pipeline `src/pipelines/predict.py` to build predictions
 - `dags/scoring_mlflow`:
