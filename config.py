@@ -6,7 +6,7 @@ from typing import Text
 from evidently import ColumnMapping
 
 
-from src.utils.utils import extract_repo_name
+# from src.utils.utils import extract_repo_name
 
 # Database
 _monitoring_db_host: Text = os.getenv("MONITORING_DB_HOST", "monitoring-db")

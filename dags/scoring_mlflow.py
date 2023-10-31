@@ -5,11 +5,12 @@ from airflow.sensors.base import PokeReturnValue
 import mlflow
 import pendulum
 
+from dags.config import CLONED_PROJECT_PATH
+
 from config import (
     BATCH_INTERVAL,
     END_DATE_TIME,
     START_DATE_TIME,
-    CLONED_PROJECT_PATH,
     MLFLOW_TRACKING_URI,
     MLFLOW_DEFAULT_MODEL_NAME
 )

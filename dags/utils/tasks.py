@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 from typing import Text
 
-from config import  AIRFLOW_DAGS_PARAMS, CLONED_PROJECT_PATH
+from dags.config import AIRFLOW_DAGS_PARAMS, CLONED_PROJECT_PATH
 from utils.utils import repo_url_with_credentials, create_dag_run_dir
 
 
@@ -58,14 +58,18 @@ def create_tmp_dir(dag_run_dir: Text):
 
 
 @task
-def clone(dag_run_dir: Text):
+def clone(dag_run_dir: Text, branch: Text | None = None):
     """Clones repository in dag_run_dir, switches on specified branch.
     Args:
-        dag_run_dir: local repository path; dag_run_dir = $AIRFLOW_RUN_DIR/<timestamp>/<repo_name>
+        dag_run_dir: Local repository path; dag_run_dir = $AIRFLOW_RUN_DIR/<timestamp>/<repo_name>.
+        branch (Text | None): Branch name. Defaults to None.
     """
+
+    branch_name: Text = branch if branch is not None else AIRFLOW_DAGS_PARAMS.get("branch")
+
     clone_repo_task(
         repo_url=AIRFLOW_DAGS_PARAMS.get("repo_url"),
-        branch=AIRFLOW_DAGS_PARAMS.get("branch"),
+        branch=branch_name,
         repo_local_path=dag_run_dir,
         repo_username=AIRFLOW_DAGS_PARAMS.get("repo_username"),
         repo_password=AIRFLOW_DAGS_PARAMS.get("repo_password")

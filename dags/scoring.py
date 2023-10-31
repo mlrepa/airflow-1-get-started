@@ -2,11 +2,12 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 import pendulum
 
+from dags.config import CLONED_PROJECT_PATH
+
 from config import (
     BATCH_INTERVAL,
     END_DATE_TIME,
-    START_DATE_TIME,
-    CLONED_PROJECT_PATH
+    START_DATE_TIME
 )
 from utils.tasks import (
     create_tmp_dir,
