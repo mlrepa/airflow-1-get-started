@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Text
+from typing import Text
 
 from airflow import DAG
 from airflow.decorators import task
@@ -9,7 +9,7 @@ import gitlab
 from gitlab.v4.objects.projects import Project as GitlabProject
 import pendulum
 
-from config import END_DATE_TIME, START_DATE_TIME
+from config import START_DATE_TIME
 from dags.utils.tasks import create_tmp_dir, clone, clean
 from dags.config import CLONED_PROJECT_PATH, AIRFLOW_DAGS_PARAMS
 
@@ -17,9 +17,9 @@ from dags.config import CLONED_PROJECT_PATH, AIRFLOW_DAGS_PARAMS
 dag = DAG(
     dag_id="train",
     start_date=pendulum.parse(START_DATE_TIME),
-    end_date=pendulum.parse(END_DATE_TIME),
+    max_active_runs=1,
     schedule_interval="@weekly",
-    max_active_runs=1
+    catchup=False
 )
 
 
@@ -42,19 +42,36 @@ with dag:
     @task
     def commit_and_push(local_repo_path: Text, **kwargs) -> Text:
 
+        import subprocess as sp
+
         ts: pendulum.DateTime = pendulum.parse(kwargs["ts"])
 
+        print("Build branch name and commit message")
         exp_date, exp_time = ts.to_date_string(), ts.to_time_string()
         branch_name: Text = f"exp-{exp_date}-{exp_time}".replace(":", "-")
         commit_msg: Text = f"Run {branch_name}"
 
+        print("Commit and push new experiment")
         repo: git.Repo = git.Repo(local_repo_path)
         repo.git.checkout("-b", branch_name)
         repo.git.add(".")
         repo.git.commit("-m", commit_msg)
         repo.git.push("origin", branch_name)
 
+        print("Push DVC pipeline artifacts to a remote")
+        dvc_push_proc = sp.Popen(
+            f"cd {local_repo_path} && dvc push",
+            shell=True,
+            stdout=sp.PIPE,
+            stderr=sp.PIPE
+        )
+        out, err = dvc_push_proc.communicate()
+        print(f"DVC push command output: {out}")
+        print(f"DVC push command errors: {err}")
+
         return branch_name
+
+    # TODO: add task: add commit sha/link to MLflow
 
     @task
     def create_merge_request(source_branch_name, **kwargs):
@@ -66,6 +83,7 @@ with dag:
         full_project_name: Text = project_url.replace("https://gitlab.com/", "").replace(".git", "")
         project: GitlabProject = gl.projects.get(full_project_name)
         
+        # TODO: add links (run and model) as description of MR
         mr = project.mergerequests.create({
             "source_branch": source_branch_name,
             "target_branch": "main",
