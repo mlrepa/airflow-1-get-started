@@ -75,7 +75,7 @@ docker build \
 
 ### 3. Add DVC remote storage (local)
 
-- Add DVC remote path to `config/.env`: DVC_STORAGE=/path/to/dvc/local/storage
+- Define shell variable for DVC remote path to: `export DVC_STORAGE=/path/to/dvc/local/storage`
 
 - Create directory which will be used as `DVC` remote (`local` remote `DVC` storage)
 
@@ -88,12 +88,12 @@ mkdir -p ${DVC_STORAGE}
 Add `DVC` remote:
 
 ```bash
-dvc remote add --local -d local ${DVC_STORAGE}
+dvc remote add -d local ${DVC_STORAGE}
 git add .dvc/config
 git commit -m "Setup DVC remote storage ('local')"
 ```
 
-**Note**: option `--local` saves remote configuration to the Git-ignored local config file
+**Note**: here we use `/tmp/dvc/mlops-3-nyt-taxi` as `DVC` remote path example; but the path can be any valid full path to a directory.
 
 ## :rocket: Launch Monitoring Cluster
 
