@@ -118,7 +118,5 @@ def save_predictions(predictions: pd.DataFrame, path: Path) -> None:
         predictions (pd.DataFrame): Pandas dataframe with predictions column.
         path (Path): Path to save predictions.
     """
-
-    # Save predictions data to parquet format
     predictions.to_parquet(path, engine="fastparquet")
     print(f"Predictions saved to: {path}")
