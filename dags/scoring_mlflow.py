@@ -41,7 +41,7 @@ with dag:
     
     # [1] Detect if there is a production model in MLflow
     # ===================================================
-    @task.sensor(poke_interval=20, timeout=10)
+    @task.sensor(poke_interval=60, timeout=3600, retries=5, mode="reschedule")
     def model_sensor():
 
         import mlflow
