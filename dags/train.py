@@ -1,5 +1,7 @@
+import json
 import os
-from typing import Text
+from pathlib import Path
+from typing import Dict, Text
 
 from airflow import DAG
 from airflow.decorators import task
@@ -7,9 +9,10 @@ from airflow.operators.bash import BashOperator
 import git
 import gitlab
 from gitlab.v4.objects.projects import Project as GitlabProject
+import mlflow
 import pendulum
 
-from config import START_DATE_TIME
+from config import START_DATE_TIME, MLFLOW_TRACKING_URI, MLFLOW_DEFAULT_MODEL_NAME
 from dags.utils.tasks import create_tmp_dir, clone, clean
 from dags.config import CLONED_PROJECT_PATH, AIRFLOW_DAGS_PARAMS
 
@@ -71,11 +74,37 @@ with dag:
 
         return branch_name
 
-    # TODO: add task: add commit sha/link to MLflow
+    @task
+    def add_metadata_to_mlflow_run(local_repo_path: Text):
+
+        print("Collect metadata")
+        repo_url: Text = AIRFLOW_DAGS_PARAMS.get("repo_url")
+        repo: git.Repo = git.Repo(local_repo_path)
+        commit_sha: Text = repo.head.commit.hexsha
+        commit_url: Text = f"{repo_url.replace('.git', '')}/-/commit/{commit_sha}"
+        print(f"commit_sha = {commit_sha}")
+        print(f"commit_url = {commit_sha}")
+
+        print("Read MLflow report")
+        mlflow_report_path: Path = Path(local_repo_path) / "reports/mlflow_report.json"
+
+        with open(mlflow_report_path) as mlflow_report_f:
+            mlflow_report: Dict = json.load(mlflow_report_f)
+
+        mlflow_run_id: Text = mlflow_report["run_id"]
+        print(f"MLflow run ID = {mlflow_run_id}")
+
+        print("Add metadata to run - set MLflow run tags")
+        mlflow_client = mlflow.MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
+        # Custom tag
+        mlflow_client.set_tag(mlflow_run_id, "commit_sha", commit_sha)
+        # Built-in tag - Description of the run. Source: https://mlflow.org/docs/latest/tracking.html#system-tags
+        mlflow_client.set_tag(mlflow_run_id, "mlflow.note.content", commit_url)
 
     @task
-    def create_merge_request(source_branch_name, **kwargs):
+    def create_merge_request(source_branch_name: Text, local_repo_path: Text, **kwargs):
 
+        print("Get GitLab project")
         project_url: Text = AIRFLOW_DAGS_PARAMS["repo_url"]
         gitlab_pat: Text = AIRFLOW_DAGS_PARAMS["repo_password"]
 
@@ -83,11 +112,44 @@ with dag:
         full_project_name: Text = project_url.replace("https://gitlab.com/", "").replace(".git", "")
         project: GitlabProject = gl.projects.get(full_project_name)
         
-        # TODO: add links (run and model) as description of MR
+        print("Read MLflow report")
+        mlflow_report_path: Path = Path(local_repo_path) / "reports/mlflow_report.json"
+
+        with open(mlflow_report_path) as mlflow_report_f:
+            mlflow_report: Dict = json.load(mlflow_report_f)
+        
+        mlflow_exp_id: Text = mlflow_report["experiment_id"]
+        mlflow_run_id: Text = mlflow_report["run_id"]
+        print(f"MLflow experiment ID = {mlflow_exp_id}")
+        print(f"MLflow run ID = {mlflow_run_id}")
+
+        mlflow_run_url: Text = f"http://localhost:5000/#/experiments/{mlflow_exp_id}/runs/{mlflow_run_id}"
+        print(f"MLflow run URL = {mlflow_run_url}")
+
+        mlflow_client = mlflow.MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
+        found_models = mlflow_client.search_model_versions(
+            filter_string=f"name='{MLFLOW_DEFAULT_MODEL_NAME}' run_id='{mlflow_run_id}'"
+        )
+
+        mlflow_run_model_url: Text = ""
+
+        if found_models:
+            model = found_models[0]
+            mlflow_run_model_url = f"http://localhost:5000/#/models/{MLFLOW_DEFAULT_MODEL_NAME}/versions/{model.version}"
+
+        print(f"MLflow run model URL = {mlflow_run_model_url}")
+        
+        mr_description: Text = (    
+            f"MLflow run URL: {mlflow_run_url}\n\n"
+            f"MLflow run model URL: {mlflow_run_model_url}"
+        )
+
+        print("Create merge request")
         mr = project.mergerequests.create({
             "source_branch": source_branch_name,
             "target_branch": "main",
-            "title": f"Run experiment on {kwargs['ts']}"
+            "title": f"Run experiment on {kwargs['ts']}",
+            "description": mr_description
         })
         changes = mr.changes()
 
@@ -97,6 +159,7 @@ with dag:
     clone = clone(CLONED_PROJECT_PATH, "main")
     clean = clean(CLONED_PROJECT_PATH)
     source_branch_name = commit_and_push(CLONED_PROJECT_PATH)
-    create_merge_request = create_merge_request(source_branch_name)
+    create_merge_request = create_merge_request(source_branch_name, CLONED_PROJECT_PATH)
+    add_metadata_to_mlflow_run = add_metadata_to_mlflow_run(CLONED_PROJECT_PATH)
 
-    create_tmp_dir >> clone >> train >> source_branch_name >> create_merge_request >> clean
+    create_tmp_dir >> clone >> train >> source_branch_name >> create_merge_request >> add_metadata_to_mlflow_run >> clean
