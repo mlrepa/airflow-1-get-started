@@ -248,6 +248,16 @@ services:
       monitoring-db:
         condition: service_healthy
 
+  mlflow-server:
+    image: mlflow-server:latest
+    container_name: mlflow-server
+    networks:
+      - monitoring
+    ports:
+      - 5000:5000
+    volumes:
+      - ./mlruns:/home/user/mlruns
+      - ./mlartifacts:/home/user/mlartifacts
 
 volumes:
   airflow-db-volume: {}

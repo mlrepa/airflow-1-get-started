@@ -1,9 +1,17 @@
+import json
+
 import joblib
+import mlflow
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
-from config import FEATURES_DIR
+from config import (
+    FEATURES_DIR,
+    MLFLOW_TRACKING_URI, 
+    MLFLOW_EXPERIMENT_NAME,
+    MLFLOW_DEFAULT_MODEL_NAME
+)
 
 
 def train() -> None:
@@ -48,7 +56,24 @@ def train() -> None:
     print(mean_absolute_percentage_error(val_data[target], val_preds))
 
     print("Save the model")
-    joblib.dump(model, "models/model.joblib")
+    joblib.dump(model, "models/model.joblib") 
+
+    print("Log model to MLflow")
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    mlflow_experiment = mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+    model_info = mlflow.sklearn.log_model(model, MLFLOW_DEFAULT_MODEL_NAME)
+
+    mlflow.register_model(model_uri=model_info.model_uri, name=MLFLOW_DEFAULT_MODEL_NAME)
+
+    with open("reports/mlflow_report.json", "w") as mlflow_report_f:
+        json.dump(
+            obj={
+                "experiment_id": mlflow_experiment.experiment_id,
+                "run_id": model_info.run_id
+            },
+            fp=mlflow_report_f,
+            indent=4
+        )
 
 
 if __name__ == "__main__":

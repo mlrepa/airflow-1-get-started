@@ -49,16 +49,27 @@ Get the tutorial example code:
 
 ```bash
 git clone git@gitlab.com:mlrepa/mlops/mlops-3-nyt-taxi.git
-cd emlops-3-nyt-taxi
+cd mlops-3-nyt-taxi
 ```
 
-### 2 - Build a base Docker image
+### 2 - Build an Airflow base Docker image
 ```bash
 export AIRFLOW_USER_ID=$(id -u)
 docker build \
   -t airflow-base-2.7.1 \
   --build-arg AIRFLOW_USER_ID=${AIRFLOW_USER_ID} \
   -f docker/airflow_base/Dockerfile \
+  .
+```
+
+### 3 - Build a MLflow Docker image
+
+```bash
+export USER_ID=$(id -u)
+docker build \
+  -t mlflow-server \
+  --build-arg USER_ID=${USER_ID} \
+  -f docker/mlflow/Dockerfile \
   .
 ```
 
@@ -81,6 +92,7 @@ docker compose up -d
 - `airflow-db` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
 - `monitoring-db` - `PostgreSQL`, available on [http://localhost:5433](http://localhost:5432)
 - `grafana` - `Grafana` dashboards, available on [http://localhost:3000](http://localhost:3000)
+- `mlflow-server` - MLFlow UI, available on [http://localhost:5000](http://localhost:5000)
 
 </details>
 
@@ -156,10 +168,9 @@ python src/scripts/create_db.py
 
 </details>
 
-### 4 - Add DVC remote storage (local)
+### 4. Add DVC remote storage (local)
 
-<!-- - Add DVC remote path to `config/.env`: DVC_STORAGE=/path/to/dvc/local/storage -->
-
+- Define shell variable for DVC remote path to: `export DVC_STORAGE=/path/to/dvc/local/storage`
 - Create directory which will be used as `DVC` remote (`local` remote `DVC` storage)
 
 Example:
@@ -171,11 +182,12 @@ mkdir -p ${DVC_STORAGE}
 Add `DVC` remote:
 
 ```bash
-cd ${PROJECT_DIR}
-dvc remote add --local -d local ${DVC_STORAGE}
+dvc remote add -d local ${DVC_STORAGE}
+git add .dvc/config
+git commit -m "Setup DVC remote storage ('local')"
 ```
 
-**Note**: option `--local` saves remote configuration to the Git-ignored local config file
+**Note**: here we use `/tmp/dvc/mlops-3-nyt-taxi` as `DVC` remote path example; but the path can be any valid full path to a directory.
 
 ### 5 - Download data & train model
 
@@ -275,3 +287,25 @@ python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
 - `monitor_model` pipeline requires ground truth data to test the quality of predictions. We assume that these labels are available for the previous period. The earliest date to run `monitor_model` is '2021-02-01 02:00:00'
 
 </details>
+
+
+## Scoring DAGs
+
+Scoring DAGs works such way: 
+
+```clone the project remote repository -> run prediction script -> copy predictions to data/predictions/```
+
+There are two scoring DAGs:
+- `dags/scoring_local.py`: 
+  - loads model `models/models.joblib` to make predictions  from the  project directory
+  - runs pipeline `src/pipelines/predict.py` to build predictions
+- `dags/scoring_mlflow`:
+  - loads last registered `MLflow` model in **Production** stage if such model exists; fails in other case;
+  - runs pipeline `src/pipelines/predict_mlflow.py` to build predictions
+
+**Notes**:
+- the DAG `dags/scoring_mlflow` requires registered `MLflow` model in production stage
+- pipeline script `srs/pipelines/train.py` register new version of the model
+- therefore, to run DAG `dags/scoring_mlflow` successfully you should to apply stage type **Production** to any model version in [`MLflow` UI](http://localhost:5000/#/models)
+
+More about `MLflow` models and models versioning (*MLflow Model Registry): https://mlflow.org/docs/latest/model-registry.html

@@ -1,43 +1,48 @@
-import git
+from airflow.decorators import task
+from airflow.operators.bash import BashOperator
+import os
 from pathlib import Path
 import shutil
 from typing import Text
 
-from utils.utils import repo_url_with_credentials
+from dags.config import  AIRFLOW_DAGS_PARAMS, CLONED_PROJECT_PATH
+from utils.utils import create_dag_run_dir, clone_git_repo
 
 
-def clone_repo_task(repo_url: Text,
-                    branch: Text,
-                    repo_local_path: Text,
-                    repo_username: Text,
-                    repo_password: Text,
-                    ) -> None:
-    """Clone Git repo
-
+@task
+def create_tmp_dir(dag_run_dir: Text):
+    """Creates temporary folder (of local repository) in $AIRFLOW_RUN_DIR, from which
+    scoring script will be run.
     Args:
-        repo_url: Remote Git repo URL
-        branch: Target branch  to source code
-        repo_local_path: Local directory for DAG running
-        repo_username: Username
-        repo_password: Password (personal access token
-
-    Returns: None
-
+        dag_run_dir: local repository path; dag_run_dir = $AIRFLOW_RUN_DIR/<timestamp>/<repo_name>
     """
-    print(f'Cloning {repo_url}')
-    print(f'Repo clone to {repo_local_path}')
-    repo_url_with_creds = repo_url_with_credentials(repo_url, repo_username, repo_password)
-    repo_local_path = Path(repo_local_path)
+    create_dag_run_dir(dag_run_dir)
 
-    if repo_local_path.exists():
-        try:
-            shutil.rmtree(repo_local_path)
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
 
-    git.Repo.clone_from(repo_url_with_creds, repo_local_path)
-    repo = git.Repo(repo_local_path)
-    repo.git.checkout(branch)
-    repo.git.pull('origin', branch)
+@task
+def clone(dag_run_dir: Text, branch: Text | None = None):
+    """Clones repository in dag_run_dir, switches on specified branch.
+    Args:
+        dag_run_dir: Local repository path; dag_run_dir = $AIRFLOW_RUN_DIR/<timestamp>/<repo_name>.
+        branch (Text | None): Branch name. Defaults to None.
+    """
 
-    print(f'Repository cloned to: {repo_local_path}')
+    branch_name: Text = branch if branch is not None else AIRFLOW_DAGS_PARAMS.get("branch")
+
+    clone_git_repo(
+        repo_url=AIRFLOW_DAGS_PARAMS.get("repo_url"),
+        branch=branch_name,
+        repo_local_path=dag_run_dir,
+        repo_username=AIRFLOW_DAGS_PARAMS.get("repo_username"),
+        repo_password=AIRFLOW_DAGS_PARAMS.get("repo_password")
+    )
+
+
+@task(trigger_rule='all_success')
+def clean(dag_run_dir):
+    """
+    Removes the repository temporary folder.
+    Args:
+        dag_run_dir: local repository path; dag_run_dir = $AIRFLOW_RUN_DIR/<timestamp>/<repo_name>
+    """
+    shutil.rmtree(Path(dag_run_dir).parent)
