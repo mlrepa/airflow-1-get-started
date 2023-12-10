@@ -1,4 +1,0 @@
-[core]
-    remote = local
-['remote "local"']
-    url = /tmp/dvc/mlops-3-nyt-taxi
