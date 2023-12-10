@@ -1,45 +1,4 @@
-# End-to-End MLOps pipelines for NYTaxi Dataset 
-
-Note: This example is based on the [airflow_batch_monitoring](https://github.com/evidentlyai/evidently/tree/main/examples/integrations/airflow_batch_monitoring) integration example from Evidently.
-
-- Automate ML training pipeline with DVC
-- Run ML pipelines for training, inference and monitoring with [Airflow](https://airflow.apache.org/). 
-- Generate data quality and model monitoring reports with `Evidenlty`
-- Save monitoring metrics to [PostgreSQL](https://www.postgresql.org/) database 
-- Visualize ML monitoring dashboards in [Grafana](https://grafana.com/) 
-
-![Grafana dashboard](static/preview.png "Dashboard preview")
-
---------
-Project Organization
-------------
-    .
-    ├── airflow            <- Airflow configs
-    ├── dags               <- Airflow DAGs
-    │
-    ├── data
-    │   ├── features       <- Features for model training and inference.
-    │   ├── predictions    <- Generated predictions.
-    │   ├── raw            <- The original, immutable data dump.
-    │   └── reference      <- Reference datasets for monitoring.
-    │
-    ├── docker             <- Dockerfiles
-    ├── grafana            <- Configs for Grafana dashboards
-    ├── models             <- Trained and serialized models
-    │
-    ├── reports            <- Monitoring reports
-    │   ├── data_drift     
-    │   ├── prediction_drift
-    │   └── target_drift
-    │
-    ├── src                <- Source code for use in this project.
-    │   ├── monitoring     <- Common code for monitoring 
-    │   ├── pipelines      <- Source code for all pipelines
-    │   ├── scripts        <- Helper scripts
-    │   ├── utils          <- Utility functions and classes 
-    │ 
-    └── static             <- Assets for docs 
-    
+# Basics of Airflow for Data Science  
 
 ## :woman_technologist: Installation
 
@@ -48,210 +7,161 @@ Project Organization
 Get the tutorial example code:
 
 ```bash
-git clone git@gitlab.com:mlrepa/mlops/mlops-3-nyt-taxi.git
-cd mlops-3-nyt-taxi
+git clone git@gitlab.com:risomaschool/tutorials-raif/airflow-1-get-started.git
+cd airflow-1-get-started
 ```
 
-### 2 - Build an Airflow base Docker image
+### 2 - Initializing Environment
+
+Before starting Airflow for the first time, you need to prepare your environment, i.e. create the necessary files, directories and initialize the database.
+
+**Create Airflow folder structure**
+
 ```bash
-export AIRFLOW_USER_ID=$(id -u)
-docker build \
-  -t airflow-base-2.7.1 \
-  --build-arg AIRFLOW_USER_ID=${AIRFLOW_USER_ID} \
-  -f docker/airflow_base/Dockerfile \
-  .
+mkdir -p ./airflow/logs ./airflow/plugins
 ```
 
-### 3 - Build a MLflow Docker image
+Some directories in the container are mounted, which means that their contents are synchronized between your computer and the container.
+
+- `./airflow/dags` - you can put your DAG files here.
+- `./airflow/logs` - contains logs from task execution and scheduler.
+- `./airflow/plugins` - you can put your custom plugins here.
+- `./airflow/airflow.cfg` - Airflow settings file.
+
+
+**Set up environment**
+On Linux, the quick-start needs to know your host user id and needs to have group id set to 0. Otherwise the files created in dags, logs and plugins will be created with root user ownership. You have to make sure to configure them for the docker-compose:
 
 ```bash
-export USER_ID=$(id -u)
-docker build \
-  -t mlflow-server \
-  --build-arg USER_ID=${USER_ID} \
-  -f docker/mlflow/Dockerfile \
-  .
+echo -e "AIRFLOW_UID=$(id -u)" > .env
 ```
 
-## :rocket: Launch Monitoring Cluster
-
-### 1 - Launch a cluster 
+**Initialize the database**
+On all operating systems, you need to run database migrations and create the first user account. To do this, run.
 
 ```bash
-export AIRFLOW_USER_ID=$(id -u)
-export PROJECT_DIR=${PWD}
+docker compose up airflow-init
+```
+Note: The account created has the login `airflow`and the password `airflow`
+
+
+## :rocket: Launch Airflow
+
+Now you can start all services:
+
+```bash
 docker compose up -d
 ```
-
 
 <details>
 <summary> Details on the cluster components </summary>
 
 - `airflow-webserver` - Airflow UI, available on [http://localhost:8080](http://localhost:8080)
 - `airflow-scheduler` - Airflow Scheduler (doesn't hae exposed endpoints)
-- `airflow-db` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
-- `monitoring-db` - `PostgreSQL`, available on [http://localhost:5433](http://localhost:5432)
-- `grafana` - `Grafana` dashboards, available on [http://localhost:3000](http://localhost:3000)
-- `mlflow-server` - MLFlow UI, available on [http://localhost:5000](http://localhost:5000)
+- `postgres` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
 
 </details>
 
-Please note that `$PROJECT_DIR` refers to the path of the `evidently_airflow` example directory on your local machine. The above command mounts the example code to the identical path inside the `airflow-webserver` container. This step streamlines access to the code, data, and artifacts within the container. For example,
+In a second terminal you can check the condition of the containers and make sure that no containers are in an unhealthy condition:
 
-- if the example code is located in the `/Users/.../evidently_airflow` directory on a Mac,
-- it will be mounted to the identical `/Users/.../evidently_airflow` path within the container.
+```bash
+docker ps
+```
 
 
-### 2 - Set up Airflow variables and connections
+## :tv: Accessing the environment
 
-To use the [FileSensor](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/file.html) to detect files required by DAGs, you need to have connection defined to use it (pass connection id via `fs_conn_id`). Default connection is `fs_default`
+After starting Airflow, you can interact with it in 3 ways:
 
-```bash 
+- by running CLI commands.
+- via a browser using the web interface.
+- using the REST API.
 
-# Enter container of airflow-webserver
+
+### 1 - Running the CLI commands
+
+You can also run CLI commands, but you have to do it in one of the defined `airflow-*` services. For example, to run `airflow info`, run the following command:
+
+```bash
+docker compose run airflow-worker airflow info
+```
+
+
+You can also run CLI commands in the `airflow-webserver` service. To do this, run the following command:
+
+```bash
 docker exec -ti airflow-webserver /bin/bash
-              
-# Add a `fs_default` connection 
-airflow connections add fs_default --conn-type fs
-
 ``` 
 
-For Airflow DAG `scoring` to work, you need to add environment variables on the Airflow cluster side:
+If you have Linux or Mac OS, you can `airflow.sh` wrapper scripts that will allow you to run commands with a simpler command.
 
 ```bash
-REPO_URL=<repo_url>                    # URL to the forked repo (`https://`)
-REPO_BRANCH=main
-REPO_USERNAME=<repo_user_name>
-REPO_PASSWORD=<repo_password_or_token> # GitLab Personal Access Token (*User Settings -> Access Tokens*
+chmod +x airflow.sh
 ```
 
-There are two ways to set variables:
-
-1. Through the Airflow UI http://localhost:8080/: Admin -> Variables
-
-2. Or set each variable individually via terminal (CLI):
+Now you can run commands easier.
 
 ```bash
-  # Enter container of airflow scheduler
-  docker exec -ti airflow-scheduler /bin/bash
-
-  # Add variable
-  airflow variables set <var_name> <value>
+./airflow.sh info  # to run `airflow info` command
 ```
 
-### 3 - Create monitoring DB structure
-
-Create tables for monitoring metrics. 
+You can also use `bash` as parameter to enter interactive bash shell in the container or `python`to enter python container.
 
 ```bash
-
-# Enter container of airflow-webserver
-docker exec -ti airflow-webserver /bin/bash
-
-# Create tables for monitoring metrics (inside airflow-webserver)
-cd $PROJECT_DIR/
-python src/scripts/create_db.py
+./airflow.sh bash
 ```
-
-<details>
-<summary>Notes</summary>
-  
-- tables are described in [src/utils/models.py](src/utils/models.py)
-- if you want drop all tables (in case of error or to clear database) and recreate them do:
-  
-```bash
-# Drop all tables
-python src/scripts/drop_db.py
-# Create all tables
-python src/scripts/create_db.py
-```
-
-</details>
-
-### 4. Add DVC remote storage (local)
-
-- Define shell variable for DVC remote path to: `export DVC_STORAGE=/path/to/dvc/local/storage`
-- Create directory which will be used as `DVC` remote (`local` remote `DVC` storage)
-
-Example:
-```bash
-export DVC_STORAGE=/tmp/dvc/mlops-3-nyt-taxi
-mkdir -p ${DVC_STORAGE}
-```
-
-Add `DVC` remote:
 
 ```bash
-dvc remote add -d local ${DVC_STORAGE}
-git add .dvc/config
-git commit -m "Setup DVC remote storage ('local')"
-```
-
-**Note**: here we use `/tmp/dvc/mlops-3-nyt-taxi` as `DVC` remote path example; but the path can be any valid full path to a directory.
-
-### 5 - Download data & train model
-
-This is a preparation step. This examples requires some data and a trained model.
-
-```bash 
-cd $PROJECT_DIR/
-
-python src/pipelines/load_data.py               # Download data for NYC Taxi to 'data/raw'
-python src/pipelines/process_data.py            # Process & save to 'data/features/'
-python src/pipelines/train.py                   # Save trained model to 'models/' 
-python src/pipelines/prepare_reference_data.py  # Save to 'data/reference'
+./airflow.sh python
 ```
 
 
-### 5 - Open Monitoring Dashboards (Grafana)
+### Accessing the web interface
 
-##### Enter Airflow UI and run DAGs: [http://localhost:8080](http://localhost:8080)
+Once the cluster has started up, you can log in to the web interface and begin experimenting with DAGs.
 
-<details>
-<summary>Credentials</summary>
+The webserver is available at: `http://localhost:8080`. The default account has the login `airflow` and the password `airflow`.
 
-- *login*: `admin`
-- *password*: `admin`
+### Sending requests to the REST API
 
-</details>
+Basic username password authentication is currently supported for the REST API, which means you can use common tools to send requests to the API.
 
+The webserver is available at: `http://localhost:8080`. The default account has the login `airflow` and the password `airflow`.
 
-##### Enter Grafana UI and open Monitoring Dashboards: [http://localhost:3000](http://localhost:3000)
+Here is a sample curl command, which sends a request to retrieve a pool list:
 
-<details>
-<summary>Credentials</summary>
+```bash
+ENDPOINT_URL="http://localhost:8080/"
+curl -X GET  \
+    --user "airflow:airflow" \
+    "${ENDPOINT_URL}/api/v1/pools"
+```
 
-- *login*: `admin`
-- *password*: `admin`
+## 🧹 Cleaning up
 
-</details>
-
-
-
-## :checkered_flag: Stop cluster
+Stop cluster
 
 ```bash
 docker compose down
 ```
 
-<details>
-<summary>Notes</summary>
-
-- To clear cluster one needs to remove `Docker` volumes containing `Airflow`, monitoring (`Postegres`) and `Grafana` databases 
-- It may be useful to run this tutorial from scratch
-- Run the command:
+The docker-compose environment we have prepared is a “quick-start” one. It was not designed to be used in production. The best way to recover from any problem is to clean it up and restart from scratch. Run the command:
   
 ```bash
 docker compose down -v --remove-orphans
 ```
 
-</details>
+To stop and delete containers, delete volumes with database data and download images, run:
 
-## :tv: Develop and Debug Monitoring Pipelines
+```bash
+docker compose down --volumes --rmi all
+```
+
+
+## ⚒️ DEV environment for pipelines development
+
 - In case you want to develop, run or debug Pipelines in Python Virtual Environment
 - Create virtual environment named `.venv` and install python libraries
-
-### 1 - Create Python Virtual Environment
   
 ```bash
 python3 -m venv .venv
@@ -260,52 +170,3 @@ source .venv/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
-</details>
-
-
-### 2 - Set up Environment Variables 
-For debug purpose, you can run monitoring pipelines, in local environment. 
-To make Just set MONITORING_DB_HOST variable to `localhost`: `export MONITORING_DB_URI='localhost'` 
-```bash 
-export MONITORING_DB_HOST="localhost"
-```
-
-
-### 3 - Run monitoring pipelines
-
-```bash
-python src/pipelines/monitor_data.py --ts '2021-02-01 01:00:00' --interval 60
-python src/pipelines/predict.py --ts '2021-02-01 01:00:00' --interval 60
-python src/pipelines/monitor_prediction.py --ts '2021-02-01 01:00:00' --interval 60
-python src/pipelines/monitor_model.py --ts '2021-02-01 02:00:00' --interval 60
-```
-
-<details>
-<summary>Notes</summary>
-
--  It's expected to run the `predict` pipeline before monitoring pipelines for each timestamp `--ts` 
-- `monitor_model` pipeline requires ground truth data to test the quality of predictions. We assume that these labels are available for the previous period. The earliest date to run `monitor_model` is '2021-02-01 02:00:00'
-
-</details>
-
-
-## Scoring DAGs
-
-Scoring DAGs works such way: 
-
-```clone the project remote repository -> run prediction script -> copy predictions to data/predictions/```
-
-There are two scoring DAGs:
-- `dags/scoring_local.py`: 
-  - loads model `models/models.joblib` to make predictions  from the  project directory
-  - runs pipeline `src/pipelines/predict.py` to build predictions
-- `dags/scoring_mlflow`:
-  - loads last registered `MLflow` model in **Production** stage if such model exists; fails in other case;
-  - runs pipeline `src/pipelines/predict_mlflow.py` to build predictions
-
-**Notes**:
-- the DAG `dags/scoring_mlflow` requires registered `MLflow` model in production stage
-- pipeline script `srs/pipelines/train.py` register new version of the model
-- therefore, to run DAG `dags/scoring_mlflow` successfully you should to apply stage type **Production** to any model version in [`MLflow` UI](http://localhost:5000/#/models)
-
-More about `MLflow` models and models versioning (*MLflow Model Registry): https://mlflow.org/docs/latest/model-registry.html

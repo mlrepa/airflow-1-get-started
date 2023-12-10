@@ -1,4 +1,0 @@
-apache-airflow[postgres,crypto]==2.7.1
-gitpython==3.1.37
-psycopg2-binary==2.9.9
-

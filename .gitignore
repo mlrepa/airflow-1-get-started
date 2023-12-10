@@ -1,12 +1,13 @@
 ## Airflow
-airflow/logs
-airflow/*.err
-airflow/*.log
-airflow/*.out
-airflow/*.pid
-airflow/unittests.cfg
-airflow-webserver.pid
-airflow/standalone_admin_password.txt
+!airflow/airflow.cfg
+airflow/dags
+airflow/*
+# airflow/*.log
+# airflow/*.out
+# airflow/*.pid
+# airflow/unittests.cfg
+# airflow-webserver.pid
+# airflow/standalone_admin_password.txt
 
 
 ## Configs
