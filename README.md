@@ -1,4 +1,5 @@
 # Basics of Airflow for Data Science  
+![Основы Airflow для Data Science](docs/images/airflow-banner-1.png)
 
 ## :woman_technologist: Installation
 
