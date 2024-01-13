@@ -85,7 +85,7 @@ Apache Airflow можно установить как обычную Python-би
     - Создайте структуру папок Airflow:
 
         ```bash
-        mkdir -p ./airflow/logs ./airflow/plugins
+        mkdir -p ./airflow/{dags,logs,plugins}
         ```
 
     - Настройте переменные окружения:
@@ -120,7 +120,7 @@ docker compose up -d
 
 В этом разделе тьюториала мы разберем, как создать и настроить автоматический пайплайн в Apache Airflow, используя DAG (Directed Acyclic Graph). DAG в Airflow – это рабочий процесс, состоящий из набора задач. Рассмотрим это на примере простого пайплайна `hello-airflow`.
 
-Пример кода `airflow/dags/hello-airflow.py`
+Создадим файл `airflow/dags/hello-airflow.py` и реализуем пример кода: 
 
 ```python
 from datetime import datetime
@@ -218,7 +218,7 @@ def airflow():
 
 Airflow предоставляет интуитивно понятный веб-интерфейс, который позволяет управлять и запускать DAGs.
 
-На главной странице найдите список доступных DAGs и выберите `hello-airflow`. Если DAG не активирован, переключите тумблер справа от названия DAG, чтобы активировать его. 
+На главной странице найдите список доступных DAGs и выберите `hello-airflow`. Если DAG не активирован, переключите тумблер слева от названия DAG, чтобы активировать его. 
 
 ![Untitled](docs/images/4-1-dag-enable.png){width=800}
 
