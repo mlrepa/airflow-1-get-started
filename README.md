@@ -1,168 +1,232 @@
-# Basics of Airflow for Modern AI and MLOps
+# 🌬️ Basics of Airflow for Modern AI and MLOps
 
 ![Airflow Basics for Modern AI and MLOps](assets/images/airflow-banner-1.png){width=800}
 
-## :woman_technologist: Installation
+This repository contains the example code and setup instructions for the "Airflow Basics for Modern AI and MLOps" tutorial. It will guide you through setting up Apache Airflow using Docker and running a basic example DAG.
 
-### 1 - Fork / Clone this repository
+## 👩‍💻 Installation & Setup
 
-Get the tutorial example code:
+Follow these steps to get your Airflow environment up and running.
+
+### 1️⃣ Fork / Clone this Repository
+
+First, get the tutorial example code onto your local machine:
 
 ```bash
 git clone https://github.com/mlrepa/airflow-1-get-started.git
 cd airflow-1-get-started
 ```
 
-### 2 - Initializing Environment
+### 2️⃣ Initialize Your Airflow Environment
 
-Before starting Airflow for the first time, you need to prepare your environment, i.e. create the necessary files, directories and initialize the database.
+Before starting Airflow for the first time, you need to prepare your environment. This involves creating necessary directories and initializing the Airflow database.
 
-**Create Airflow folder structure**
+**📂 Create Airflow Folder Structure**
+
+These directories will be mounted into your Docker containers, allowing your local files to be accessed by Airflow:
 
 ```bash
 mkdir -p ./airflow/{dags,logs,plugins,config}
 ```
 
-Some directories in the container are mounted, which means that their contents are synchronized between your computer and the container.
+> **Understanding Mounted Directories:**
+>
+> - `./airflow/dags`: Place your DAG (workflow definition) files here.
+> - `./airflow/logs`: Contains logs from task executions and the Airflow scheduler.
+> - `./airflow/plugins`: You can add your custom Airflow plugins here.
+> - `./airflow/config`: (Optional) For custom Airflow configuration files like `airflow.cfg` if you choose to override defaults. *The provided `docker-compose.yaml` might already handle basic configurations.*
 
-- `./airflow/dags` - you can put your DAG files here.
-- `./airflow/logs` - contains logs from task execution and scheduler.
-- `./airflow/plugins` - you can put your custom plugins here.
-- `./airflow/airflow.cfg` - Airflow settings file.
+**⚙️ Set Up Environment Variables**
 
-
-**Set up environment**
-On Linux, the quick-start needs to know your host user id and needs to have group id set to 0. Otherwise the files created in dags, logs and plugins will be created with root user ownership. You have to make sure to configure them for the docker-compose:
+For Linux users, it's crucial to set the host user ID to ensure correct file permissions for files created by Airflow within the Docker containers.
 
 ```bash
 echo -e "AIRFLOW_UID=$(id -u)" > .env
 ```
 
-**Initialize the database**
-On all operating systems, you need to run database migrations and create the first user account. To do this, run.
+> 👉 **Tip:** This step helps avoid permission issues where files written by Airflow containers (running as `root` by default) become inaccessible to your host user.
+
+**🗂️ Initialize the Database**
+
+This step sets up the Airflow metadata database and creates the initial admin user.
 
 ```bash
 docker compose up airflow-init
 ```
 
-Note: The account created has the login `airflow`and the password `airflow`
+> ⚠️ **Default Credentials:**
+> The account created by `airflow-init` has the login: `airflow` and password: `airflow`.
+> Remember to change these for any non-local or production environment!
 
+## 🚀 Launch Airflow
 
-## :rocket: Launch Airflow
-
-Now you can start all services:
+With the environment initialized, you can now start all the Airflow services:
 
 ```bash
 docker compose up -d
 ```
 
+The `-d` flag runs the containers in detached mode (in the background).
+
 <details>
-<summary> Details on the cluster components </summary>
+<summary>🔍 Understanding the Docker Compose Services</summary>
 
-- `airflow-webserver` - Airflow UI, available on [http://localhost:8080](http://localhost:8080)
-- `airflow-scheduler` - Airflow Scheduler (doesn't hae exposed endpoints)
-- `postgres` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
+The `docker-compose.yaml` file defines several services that work together:
 
-See [docs](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#fetching-docker-compose-yaml) for `docker-compose.yaml` details and instructions.
+- `airflow-webserver`: The Airflow User Interface (UI). Accessible at [http://localhost:8080](http://localhost:8080).
+- `airflow-scheduler`: The core Airflow component that monitors DAGs and triggers task runs. It doesn't have exposed ports.
+- `airflow-worker` (if defined): Executes the tasks scheduled by the scheduler (common in CeleryExecutor setups).
+- `airflow-triggerer` (if defined): Manages deferrable tasks.
+- `postgres` (or similar): The PostgreSQL database used by Airflow to store its metadata. Accessible (e.g., for DB tools) typically on `localhost:5432`.
+- `redis` (if defined): Often used as a message broker for CeleryExecutor.
 
+For more details on the official Docker Compose setup, refer to the [Airflow Docker Documentation](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#fetching-docker-compose-yaml).
 
 </details>
 
-In a second terminal you can check the condition of the containers and make sure that no containers are in an unhealthy condition:
+To check the status of your running containers and ensure they are healthy:
 
 ```bash
 docker ps
 ```
 
+## 📺 Accessing Your Airflow Environment
 
-## :tv: Accessing the environment
+Once Airflow is running, you can interact with it in several ways:
 
-After starting Airflow, you can interact with it in 3 ways:
+### 1️⃣ Via the Web Interface (UI)
 
-- by running CLI commands.
-- via a browser using the web interface.
-- using the REST API.
+This is the most common way to monitor and manage your DAGs.
 
+- **URL:** [http://localhost:8080](http://localhost:8080)
+- **Login:** `airflow`
+- **Password:** `airflow`
 
-### 1 - Running the CLI commands
+### 2️⃣ Using the Command Line Interface (CLI)
 
-You can also run CLI commands, but you have to do it in one of the defined `airflow-*` services. For example, to run `airflow info`, run the following command:
+You can execute Airflow CLI commands directly within the running Airflow containers.
+
+**Option A: Using `docker compose run` (for one-off commands)**
+
+This starts a new, temporary container to run the command. Replace `airflow-1-get-started-airflow-scheduler-1` with the actual name of your scheduler or webserver service if it differs (check `docker-compose.yaml` or `docker ps`). *Often, the scheduler service is a good target for CLI commands.*
 
 ```bash
-docker compose run airflow-1-get-started-airflow-apiserver-1 airflow info
+# Example: Get Airflow version and configuration info
+docker compose run airflow-scheduler airflow info
+# Example: List DAGs
+docker compose run airflow-scheduler airflow dags list
 ```
 
-You can also run CLI commands in the `airflow-webserver` service. To do this, run the following command:
+> 👉 **Note:** The service name like `airflow-1-get-started-airflow-apiserver-1` in your original example might be from a custom compose file. For the official one, it's usually `airflow-scheduler` or `airflow-webserver`.
+
+**Option B: Executing commands in an existing container**
+
+This opens an interactive shell inside a running container (e.g., the webserver or scheduler).
 
 ```bash
-docker exec -ti airflow-webserver /bin/bash
+# Get a bash shell inside the webserver container
+docker exec -ti airflow-1-get-started-airflow-webserver-1 /bin/bash
+# Or, more commonly for official compose file:
+# docker exec -ti <your_project_name>-airflow-webserver-1 /bin/bash
+
+# Once inside, you can run Airflow commands directly:
+# airflow dags list
+# airflow tasks test your_dag_id your_task_id YYYY-MM-DD
+# exit
 ```
 
-### Accessing the web interface
+> (Replace `<your_project_name>-airflow-webserver-1` with the actual name from `docker ps`)
 
-Once the cluster has started up, you can log in to the web interface and begin experimenting with DAGs.
+### 3️⃣ Interacting with the REST API
 
-The webserver is available at: `http://localhost:8080`. The default account has the login `airflow` and the password `airflow`.
+Airflow provides a robust REST API for programmatic interaction.
 
-### Sending requests to the REST API
+**Authentication (Get an Access Token):**
 
-The webserver is available at: `http://localhost:8080`. The default account has the login `airflow` and the password `airflow`.
-
-The Airflow public API uses JWT (JSON Web Token) for authenticating API requests [docs](https://airflow.apache.org/docs/apache-airflow/stable/security/api.html).
+The Airflow API uses JWT (JSON Web Tokens) for authentication.
 
 ```bash
-curl -X POST "http://localhost:8080/auth/token" \
+# Request an access token
+TOKEN=$(curl -X POST "http://localhost:8080/api/v1/auth" \
   -H "Content-Type: application/json" \
-  -d '{"username": "airflow", "password": "airflow"}'
+  -u "airflow:airflow" \
+  --silent | jq -r '.access_token')
+
+# Optional: Check the token
+echo $TOKEN
 ```
 
-Get list of DAGs (top 3):
+> ⚠️ **API Authentication Update:** The method `POST /auth/token` with username/password in the body is for older Airflow versions or specific auth backends. The current stable API often uses Basic Auth for the `/api/v1/auth` endpoint to get a token as shown above, or expects a pre-configured auth backend. Please refer to the [Airflow API Security Docs](https://airflow.apache.org/docs/apache-airflow/stable/security/api.html) for the most up-to-date authentication methods relevant to your Airflow version and configuration.
+
+**Example API Request (List DAGs):**
 
 ```bash
-curl -X GET "http://localhost:8080/api/v2/dags?limit=3" \
-  -H "Authorization: Bearer <token>"
-
-
+# Get list of DAGs (top 3)
+curl -X GET "http://localhost:8080/api/v1/dags?limit=3" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-## 🧹 Cleaning up
+## 🧹 Cleaning Up Your Environment
 
-Stop cluster
+When you're done, you can stop and remove the Airflow containers and associated resources.
+
+**Stop the Cluster:**
 
 ```bash
 docker compose down
 ```
 
-The docker-compose environment we have prepared is a "quick-start" one. It was not designed to be used in production. The best way to recover from any problem is to clean it up and restart from scratch. Run the command:
-  
+**Full Cleanup (Stop, Remove Containers, Volumes, and Orphans):**
+
+This command is useful if you want to reset your environment completely, including the database data.
+
 ```bash
 docker compose down -v --remove-orphans
 ```
 
-To stop and delete containers, delete volumes with database data and download images, run:
+> ⚠️ **Data Loss:** Using the `-v` flag will remove the Docker volumes, including your Airflow metadata database. This means all DAG run history, connections, etc., will be lost.
+
+**Full Cleanup including Images (Use with Caution):**
+
+This will also remove the Docker images that were downloaded or built for this setup.
 
 ```bash
 docker compose down --volumes --rmi all
 ```
 
+## 🛠️ DEV Environment for Pipeline Development (Optional)
 
-## ⚒️ DEV environment for pipelines development
+If you prefer to develop or debug your Airflow DAGs and custom Python code in a local Python virtual environment (outside of Docker, perhaps for better IDE integration):
 
-- In case you want to develop, run or debug Pipelines in Python Virtual Environment
-- Create virtual environment using `uv` and install python libraries
-  
-```bash
-# Install uv if you haven't already
-curl -LsSf https://astral.sh/uv/install.sh | sh
+- **Install `uv`:** `uv` is a fast Python package installer and resolver.
 
-# Create and activate virtual environment from pyproject.toml
-uv venv .venv --python=3.12
-source .venv/bin/activate
+    ```bash
+    # Install uv if you haven't already
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Or consult official uv documentation for other installation methods
+    ```
 
-# Install dependencies using uv
-uv pip install --upgrade pip setuptools wheel
-uv pip install -e .
+- **Create Virtual Environment & Install Dependencies:**
+    Ensure you have a `pyproject.toml` file in your project root that defines your project dependencies.
 
-# Install development dependencies
-uv add --dev black mypy ruff
-```
+    ```bash
+    # Create and activate virtual environment (e.g., using Python 3.12)
+    uv venv .venv --python 3.12
+    source .venv/bin/activate
+
+    # Install core dependencies (e.g., apache-airflow and any providers you need)
+    # This assumes your dependencies are listed in pyproject.toml or a requirements.txt
+    # If using pyproject.toml and your project is installable:
+    uv pip install -e .
+
+    # Or from requirements.txt:
+    # uv pip install -r requirements.txt
+
+    # Install development dependencies (linters, formatters)
+    # Assuming these are defined in your pyproject.toml under [project.optional-dependencies]
+    uv pip install -e ".[dev]" 
+    # Or add them individually:
+    # uv pip install black mypy ruff
+    ```
+
+> 👉 **Note for DAG Development:** Even when developing locally, your DAGs will ultimately run inside the Airflow Docker environment. Ensure that any Python packages your DAGs depend on are also available in the Docker image Airflow uses (you might need to build a custom Docker image if you have many specific dependencies).
