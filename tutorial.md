@@ -34,8 +34,6 @@ Let's begin! 😎
   - [📝 Prerequisites](#-prerequisites)
   - [💡 1 - Why is Apache Airflow so popular?](#-1---why-is-apache-airflow-so-popular)
   - [👩‍💻 2 - Installing and Running Airflow](#-2---installing-and-running-airflow)
-    - [Docker Installation](#docker-installation)
-    - [Running Airflow](#running-airflow)
   - [🛠️ 3 - Creating and Configuring an Automated Pipeline (DAG)](#️-3---creating-and-configuring-an-automated-pipeline-dag)
     - [Basic DAG Elements](#basic-dag-elements)
     - [How it Works](#how-it-works)
@@ -80,50 +78,12 @@ The popularity of Apache Airflow is due to its powerful workflow orchestration c
 
 Apache Airflow can be installed as a regular Python library or run in a Docker container. However, the best option is installation in Docker, as it provides a more convenient and stable environment.
 
-### Docker Installation
+Please follow these steps from the README:
 
-1. Clone the repository
+1. [Installation instructions](README.md#-installation) to set up your Airflow environment
+2. [Launch Airflow](README.md#-launch-airflow) to start the services
 
-    First, clone the repository with the example code:
-
-    ```bash
-    git clone git@gitlab.com:risomaschool/tutorials-raif/airflow-1-get-started.git
-    cd airflow-1-get-started
-    ```
-
-2. Environment Initialization
-
-    Before running Airflow for the first time, you need to prepare the environment:
-
-    - Create the Airflow folder structure:
-
-        ```bash
-        mkdir -p ./airflow/{dags,logs,plugins,config}
-        ```
-
-    - Set up environment variables:
-
-        ```bash
-        echo -e "AIRFLOW_UID=$(id -u)" > .env
-        ```
-
-    - Initialize the database:
-
-        ```bash
-        docker compose up airflow-init
-        ```
-
-    > ⚠️ Note: The created account has the login `airflow` and password `airflow`.
-
-### Running Airflow
-
-Now you can start all services:
-
-```bash
-docker compose up -d
-```
-
-The web interface is available at: [http://localhost:8080](http://localhost:8080/).
+The web interface will be available at: [http://localhost:8080](http://localhost:8080/).
 
 ![Airflow UI](assets/images/2-1-run-airflow.png){width=800}
 
