@@ -1,4 +1,4 @@
-![Airflow Basics for Data Science](assets/images/airflow-banner-1.png){width=800}
+![Airflow Basics for Modern AI and MLOps](assets/images/airflow-banner-1.png){width=800}
 
 # Tutorial: Airflow Basics for Modern AI and MLOps
 

@@ -1,5 +1,6 @@
-# Basics of Airflow for Data Science  
-![Основы Airflow для Data Science](docs/images/airflow-banner-1.png)
+# Basics of Airflow for Modern AI and MLOps
+
+![Airflow Basics for Modern AI and MLOps](assets/images/airflow-banner-1.png){width=800}
 
 ## :woman_technologist: Installation
 
@@ -8,7 +9,7 @@
 Get the tutorial example code:
 
 ```bash
-git clone git@gitlab.com:risomaschool/tutorials-raif/airflow-1-get-started.git
+git clone https://github.com/mlrepa/airflow-1-get-started.git
 cd airflow-1-get-started
 ```
 
@@ -96,28 +97,6 @@ You can also run CLI commands in the `airflow-webserver` service. To do this, ru
 ```bash
 docker exec -ti airflow-webserver /bin/bash
 ```
-
-<!-- If you have Linux or Mac OS, you can `airflow.sh` wrapper scripts that will allow you to run commands with a simpler command.
-
-```bash
-chmod +x airflow.sh
-```
-
-Now you can run commands easier.
-
-```bash
-./airflow.sh info  # to run `airflow info` command
-```
-
-You can also use `bash` as parameter to enter interactive bash shell in the container or `python`to enter python container.
-
-```bash
-./airflow.sh bash
-```
-
-```bash
-./airflow.sh python
-``` -->
 
 ### Accessing the web interface
 
