@@ -13,8 +13,8 @@ Follow these steps to get your Airflow environment up and running.
 First, get the tutorial example code onto your local machine:
 
 ```bash
-git clone https://github.com/mlrepa/airflow-1-get-started.git
-cd airflow-1-get-started
+git clone git@github.com:mlrepa/airflow-for-modern-ai-and-mlops.git
+cd airflow-for-modern-ai-and-mlops
 ```
 
 ### 2️⃣ Initialize Your Airflow Environment
