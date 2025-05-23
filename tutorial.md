@@ -1,12 +1,12 @@
-![Airflow Basics for Data Science](docs/images/airflow-banner-1.png){width=800}
+![Airflow Basics for Data Science](assets/images/airflow-banner-1.png){width=800}
 
 # Tutorial: Airflow Basics for Modern AI and MLOps
 
 ## 👀 Description
 
-🎓 **What is this?** This is your new assistant - the "Airflow Basics for Data Science" tutorial. It's not just a set of instructions, but a comprehensive guide with examples that will teach you how to use Apache Airflow as a foundational tool for orchestrating workflows in modern AI and MLOps projects.
+🎓 **What is this?** This is your new assistant - the "Airflow Basics for Modern AI and MLOps" tutorial. It's not just a set of instructions, but a comprehensive guide with examples that will teach you how to use Apache Airflow as a foundational tool for orchestrating workflows in modern AI and MLOps projects.
 
-👩🏻‍💻 **Who is this tutorial for?** If you're a Data Scientists, aspiring ML Engineers, or anyone looking to understand how Airflow can automate and manage AI/ML pipelines, this tutorial is specifically created for you. It's suitable for both those who are just starting with Airflow and those who already have experience and want to deepen their knowledge.
+👩🏻‍💻 **Who is this tutorial for?** If you're a Data Scientist, aspiring ML Engineer, or anyone looking to understand how Airflow can automate and manage AI/ML pipelines, this tutorial is specifically created for you. It's suitable for both those who are just starting with Airflow and those who already have experience and want to deepen their knowledge.
 
 **🎯 What will you learn?**
 
@@ -20,9 +20,9 @@ In this tutorial, you will master:
 
 🔍 **How is it structured?** You won't have to search long for the information you need. The tutorial contains comprehensive code examples and step-by-step instructions in Markdown format.
 
-⏱️ **How much time do you need?** Just 30 minutes - and you're one step closer to becoming a pro in managing data processing workflows and ML model applications with Airflow.
+⏱️ **How much time do you need?** Approximately 30-45 minutes - and you're one step closer to becoming a pro in managing data processing workflows and ML model applications with Airflow.
 
-This tutorial is your ideal starting point for mastering Airflow. It will give you not only theoretical knowledge but also practical skills that you can immediately apply in your work. Don't miss the chance to improve your Data Science competencies!
+This tutorial is your ideal starting point for mastering Airflow. It will give you not only theoretical knowledge but also practical skills that you can immediately apply in your work. Don't miss the chance to improve your AI/ML workflow orchestration competencies!!
 
 Let's begin! 😎
 
@@ -49,7 +49,6 @@ Let's begin! 😎
     - [Overview of Logs and Task Details](#overview-of-logs-and-task-details)
   - [🏗️ 6 - Overview of Airflow Architecture and its Use in MLOps](#️-6---overview-of-airflow-architecture-and-its-use-in-mlops)
   - [🔗 Additional Resources](#-additional-resources)
-  - [💡 Further Learning](#-further-learning)
 
 ---
 
@@ -60,7 +59,6 @@ Before you begin, ensure you have the following installed:
 - **Docker Compose:** (Usually included with Docker Desktop)
 - Basic understanding of Python.
 - Familiarity with the command line/terminal.
-    *
 
 ---
 
@@ -127,7 +125,7 @@ docker compose up -d
 
 The web interface is available at: [http://localhost:8080](http://localhost:8080/).
 
-![Airflow UI](docs/images/2-1-run-airflow.png){width=800}
+![Airflow UI](assets/images/2-1-run-airflow.png){width=800}
 
 After completing these steps, you will have a fully configured environment for working with Airflow in Docker.
 
@@ -137,11 +135,10 @@ After completing these steps, you will have a fully configured environment for w
 
 In this section of the tutorial, we'll look at how to create and configure an automated pipeline in Apache Airflow using DAG (Directed Acyclic Graph). A DAG in Airflow is a workflow consisting of a set of tasks. Let's consider this using the example of a simple `hello-airflow` pipeline.
 
-Create a file `airflow/dags/hello-airflow.py` and implement the example code:
+Create a file named `hello-airflow.py` inside your `./dags` directory (e.g., `my-airflow-project/dags/hello-airflow.py`):
 
 ```python
 from datetime import datetime
-from airflow import Dataset
 from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.bash import BashOperator
@@ -189,10 +186,9 @@ The `with DAG(...) as dag:` construct creates a context in which you can define 
 
 Once you've defined your DAG with these settings, Airflow will run it according to the specified schedule and start date, and your tasks will execute according to the dependencies you've defined.
 
-Notes:
-
-- We've also imported `Dataset`. While not used in this simple `hello-airflow` example, `Dataset` objects allow for creating data-aware pipelines, where DAGs can run based on updates to specific datasets. This is a powerful feature for complex MLOps workflows involving data dependencies.
-- The TaskFlow API is generally recommended for Python-based tasks as it leads to more readable and Pythonic DAG code, simplifying development, especially for common AI/ML data processing steps.
+> 👉 **Tip: TaskFlow API for Python Tasks**
+>
+> The TaskFlow API is generally recommended for Python-based tasks as it leads to more readable and Pythonic DAG code, simplifying development, especially for common AI/ML data processing steps.
 
 ### Operators or Task Flow API?
 
@@ -242,11 +238,11 @@ Airflow provides an intuitive web interface that allows you to manage and run DA
 
 On the main page, find the list of available DAGs and select `hello-airflow`. If the DAG is not activated, toggle the switch to the left of the DAG name to activate it.
 
-![DAG Enable](docs/images/4-1-dag-enable.png){width=800}
+![DAG Enable](assets/images/4-1-dag-activate.png){width=800}
 
 If you now go to the `hello-airflow` DAG page, you can see run details, logs, and other useful information. Click on the DAG to open its detailed page and then click the "Trigger DAG" button to run it.
 
-![Hello Airflow](docs/images/4-2-hello-airflow.png){width=800}
+![Hello Airflow](assets/images/4-2-hello-airflow.png){width=800}
 
 ### Running through Command Line (CLI)
 
@@ -281,25 +277,25 @@ In the Airflow UI, you can manage and monitor your DAGs, which are sets of tasks
 
 By default, all DAGs in Airflow are deactivated. Activate DAGs to execute pipelines.
 
-![DAG Enable](docs/images/5-1-dag-enable.png){width=800}
+![DAG Enable](assets/images/4-1-dag-activate.png){width=800}
 
 For active DAGs, you can see how many tasks have been completed successfully, how many have failed, or which ones are currently running. Click on the DAG name to see DAG details.
 
-![DAG Details](docs/images/5-2-dag-enable.png){width=800}
+![DAG Details](assets/images/5-2-atctive-dags.png){width=800}
 
 ### Overview of Logs and Task Details
 
 In the DAG Grid View, you can see a visual representation of task execution on a timeline. The top part shows how long each sequence takes to execute, and the bottom part shows the status of individual tasks.
 
-![Tasks Status](docs/images/6-3-tasks-status.png){width=800}
+![Tasks Status](assets/images/5-3-tasks-status.png){width=800}
 
 For each DAG run, you can view a graph showing the relationships between tasks and their statuses.
 
-![DAG Graph](docs/images/6-4-dag-graph.png){width=800}
+![DAG Graph](assets/images/5-4-dag-graph.png){width=800}
 
 Viewing the logs of each task can be very helpful. These logs are invaluable when debugging your DAGs. These logs are invaluable when debugging your DAGs, especially for complex MLOps pipelines where individual steps (like data validation or model training) might fail
 
-![Logs](docs/images/6-5-logs.png){width=800}
+![Logs](assets/images/5-5-logs.png){width=800}
 
 These Airflow UI elements will help you effectively manage and monitor your workflows.
 
@@ -311,21 +307,14 @@ Understanding Airflow's core architecture helps in appreciating how it manages a
 
 Airflow has a modular architecture with several key components working together:
 
-1. **Scheduler:** This is the heart of Airflow. The Scheduler monitors all your DAGs and the tasks within them. It checks for dependencies, triggers scheduled DAG runs, and sends tasks to the Executor as they become ready for execution.
+![Scheduler Architecture](assets/images/6-1-architecture.png){width=800}
+*Source: [Apache Airflow Core Concepts Overview](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html)*
 
-    ![Scheduler Architecture](docs/images/6-1-arch-sheduler.png){width=800}
-
-2. **Executor:** The Executor defines *how* tasks are run. When the Scheduler determines a task needs to run, it hands it off to the Executor. Airflow supports various executors:
-    - `LocalExecutor`: Runs tasks in parallel on the same machine as the Scheduler. Good for development and smaller workloads.
-    - `CeleryExecutor` / `KubernetesExecutor`: Allow for distributed task execution across multiple worker machines or a Kubernetes cluster. These are essential for scaling to larger, production MLOps workloads that might involve resource-intensive computations.
-
-3. **Workers:** In scalable setups (like with `CeleryExecutor` or `KubernetesExecutor`), Workers are the processes or machines that actually pick up tasks from the Executor and run them. Each Worker executes one task at a time.
-
-    ![Worker Architecture](docs/images/6-2-arch-workers.png){width=800}
-
-4. **Web Server:** Provides the user interface (UI) you've been using. It allows you to monitor DAG runs, view logs, manage connections, and interact with your Airflow instance.
-
-5. **Metadata Database:** Airflow uses a database (e.g., PostgreSQL, MySQL) to store the state of all DAGs, tasks, runs, connections, and other important metadata. The Scheduler, Executor, and Web Server all interact with this database.
+- **Scheduler:** Monitors all your DAGs and their tasks. It triggers scheduled DAG runs and sends tasks to the Executor when they are ready.
+- **Executor:** Defines *how* and *where* tasks are run. When the Scheduler identifies a task to run, it's passed to the Executor. This tutorial implicitly uses the `LocalExecutor` (tasks run on the same machine as the scheduler). For MLOps at scale, `CeleryExecutor` or `KubernetesExecutor` are common, distributing tasks to Workers.
+- **Workers:** (Primarily for distributed Executors like Celery/Kubernetes) These are the processes/machines that actually execute the tasks assigned by the Executor.
+- **Web Server:** Provides the user interface (UI) you've been using to monitor DAGs, view logs, and manage your Airflow instance.
+- **Metadata Database:** Stores the state of all DAGs, task instances, runs, connections, and other critical information. All Airflow components interact with this database.
 
 **How this relates to MLOps:**
 
@@ -339,7 +328,7 @@ While our `hello-airflow` DAG is simple, its underlying structure (defining task
   - **Model Deployment:** Automating the rollout of models to serving environments.
   - **Scheduled Batch Inference & Monitoring:** Running models on new data and tracking their performance over time.
 - **Ensure Reliability and Order:** The Scheduler ensures these steps run in the correct order, retrying failed tasks as configured.
-- **Scale Operations:** Executors like `CeleryExecutor` or `KubernetesExecutor`, along with Workers, allow resource-intensive ML tasks (like training large models or processing big datasets) to be distributed and run efficiently.
+- **Scale Operations:** Executors like `CeleryExecutor` or `KubernetesExecutor` allow resource-intensive ML tasks (like training large models or processing big datasets) to be distributed and run efficiently.
 - **Provide Centralized Monitoring:** The Web Server offers a single pane of glass to monitor the status of these often long-running and multi-step MLOps processes.
 
 It's important to note that when designing DAGs for distributed environments (common in MLOps):
@@ -353,55 +342,10 @@ This architecture makes Airflow a powerful and flexible tool for automating, sch
 
 ## 🔗 Additional Resources
 
-To deepen your understanding of Apache Airflow and its capabilities, here are some official documentation links:
+- [Airflow docs: Running Airflow in Docker](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#using-custom-images)
+- [Airflow docs: Setting Configuration Options](https://airflow.apache.org/docs/apache-airflow/stable/howto/set-config.html)
+- [Airflow docs: Celery Executor](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/executor/celery.html)
+- [Airflow Core Concepts Overview](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html)
 
-- **Running Airflow in Docker:** [Airflow docs: Running Airflow in Docker](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html)
-  - *This is the recommended way to get started with Airflow for local development and is what this tutorial uses.*
-- **Setting Configuration Options:** [Airflow docs: Setting Configuration Options](https://airflow.apache.org/docs/apache-airflow/stable/howto/set-config.html)
-  - *Learn how to customize your Airflow environment.*
-- **Executors Overview:** [Airflow docs: Executors Explained](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/executor/index.html)
-  - *Understand the different types of executors and when to use them, especially relevant for scaling MLOps workloads (e.g., CeleryExecutor, KubernetesExecutor).*
-- **Core Concepts - DAGs:** [Airflow docs: DAGs](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html)
-  - *A more in-depth look at Directed Acyclic Graphs, the core of Airflow.*
-- **TaskFlow API:** [Airflow docs: TaskFlow API](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/taskflow.html)
-  - *Explore how to write more Pythonic DAGs using the `@task` decorator.*
-
----
-
-## 💡 Further Learning
-
-Now that you've grasped the basics of Airflow with a simple example, you're ready to explore more advanced topics and features that are particularly relevant for building modern AI and MLOps pipelines:
-
-- **Passing Data Between Tasks:**
-  - **XComs (Cross-Communications):** Understand how Airflow tasks can exchange small amounts of metadata. Learn their use cases and limitations.
-  - **Handling Larger Data:** Explore best practices for managing larger datasets and model artifacts, which usually involves tasks reading from and writing to external storage systems (like S3, GCS, HDFS) orchestrated by Airflow.
-- **Data-Aware Scheduling with Datasets:**
-  - Dive deeper into using `airflow.Dataset` objects to define datasets that your tasks produce or consume. This allows you to create DAGs that trigger based on updates to specific datasets, leading to more event-driven and efficient MLOps workflows.
-- **Dynamic Task Mapping:**
-  - Learn how to create a dynamic number of parallel tasks at runtime based on input parameters or the output of a previous task. This is extremely useful for batch processing, hyperparameter tuning, or processing multiple data partitions in parallel.
-- **Airflow Providers:**
-  - Explore the vast ecosystem of Airflow Providers. These are packages that extend Airflow's functionality to interact with external services and tools. For MLOps, key providers include:
-    - Cloud providers (AWS, Google Cloud, Azure) for managing cloud resources, storage, and ML services.
-    - Kubernetes (e.g., `KubernetesPodOperator`) for running tasks as Kubernetes pods.
-    - Spark, Databricks for big data processing.
-    - MLflow for model tracking and management.
-- **Branching and Conditional Logic:**
-  - Learn how to implement conditional paths in your DAGs using operators like `BranchPythonOperator` to make decisions based on task outcomes or external conditions.
-- **Building a Simple MLOps Pipeline:**
-  - Try to expand on the `hello-airflow` example by creating a conceptual MLOps pipeline. For instance, a DAG with tasks for:
-        1. `generate_dummy_data`
-        2. `preprocess_data` (using TaskFlow)
-        3. `train_model` (simulated)
-        4. `evaluate_model` (simulated)
-- **Error Handling, SLAs, and Retries:**
-  - Understand how to configure task retries, set up alerts, and define Service Level Agreements (SLAs) for your critical MLOps pipelines.
-
-By exploring these areas, you can leverage Airflow's full potential to build robust, scalable, and maintainable automation for your AI and MLOps projects.
-
----
-
-![Airflow Basement](docs/images/airflow-basement-1.png){width=800}
-
----
 
 [⬆️ Table of Contents](#-table-of-contents)
