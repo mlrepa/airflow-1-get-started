@@ -1,4 +1,4 @@
-![Airflow Basics for Modern AI and MLOps](assets/images/airflow-banner-1.png){width=800}
+<img src="assets/images/airflow-banner-1.png" alt="Airflow Basics for Modern AI and MLOps" width="800">
 
 # Tutorial: Airflow Basics for Modern AI and MLOps
 
@@ -84,7 +84,7 @@ Please follow these steps from the README:
 
 The web interface will be available at: [http://localhost:8080](http://localhost:8080/).
 
-![Airflow UI](assets/images/2-1-run-airflow.png){width=800}
+<img src="assets/images/2-1-run-airflow.png" alt="Airflow UI" width="800">
 
 After completing these steps, you will have a fully configured environment for working with Airflow in Docker.
 
@@ -197,11 +197,11 @@ Airflow provides an intuitive web interface that allows you to manage and run DA
 
 On the main page, find the list of available DAGs and select `hello-airflow`. If the DAG is not activated, toggle the switch to the left of the DAG name to activate it.
 
-![DAG Enable](assets/images/4-1-dag-activate.png){width=800}
+<img src="assets/images/4-1-dag-activate.png" alt="DAG Enable" width="800">
 
 If you now go to the `hello-airflow` DAG page, you can see run details, logs, and other useful information. Click on the DAG to open its detailed page and then click the "Trigger DAG" button to run it.
 
-![Hello Airflow](assets/images/4-2-hello-airflow.png){width=800}
+<img src="assets/images/4-2-hello-airflow.png" alt="Hello Airflow" width="800">
 
 ### Running through Command Line (CLI)
 
@@ -236,25 +236,25 @@ In the Airflow UI, you can manage and monitor your DAGs, which are sets of tasks
 
 By default, all DAGs in Airflow are deactivated. Activate DAGs to execute pipelines.
 
-![DAG Enable](assets/images/4-1-dag-activate.png){width=800}
+<img src="assets/images/4-1-dag-activate.png" alt="DAG Enable" width="800">
 
 For active DAGs, you can see how many tasks have been completed successfully, how many have failed, or which ones are currently running. Click on the DAG name to see DAG details.
 
-![DAG Details](assets/images/5-2-atctive-dags.png){width=800}
+<img src="assets/images/5-2-atctive-dags.png" alt="DAG Details" width="800">
 
 ### Overview of Logs and Task Details
 
 In the DAG Grid View, you can see a visual representation of task execution on a timeline. The top part shows how long each sequence takes to execute, and the bottom part shows the status of individual tasks.
 
-![Tasks Status](assets/images/5-3-tasks-status.png){width=800}
+<img src="assets/images/5-3-tasks-status.png" alt="Tasks Status" width="800">
 
 For each DAG run, you can view a graph showing the relationships between tasks and their statuses.
 
-![DAG Graph](assets/images/5-4-dag-graph.png){width=800}
+<img src="assets/images/5-4-dag-graph.png" alt="DAG Graph" width="800">
 
 Viewing the logs of each task can be very helpful. These logs are invaluable when debugging your DAGs. These logs are invaluable when debugging your DAGs, especially for complex MLOps pipelines where individual steps (like data validation or model training) might fail
 
-![Logs](assets/images/5-5-logs.png){width=800}
+<img src="assets/images/5-5-logs.png" alt="Logs" width="800">
 
 These Airflow UI elements will help you effectively manage and monitor your workflows.
 
@@ -266,7 +266,7 @@ Understanding Airflow's core architecture helps in appreciating how it manages a
 
 Airflow has a modular architecture with several key components working together:
 
-![Scheduler Architecture](assets/images/6-1-architecture.png){width=800}
+<img src="assets/images/6-1-architecture.png" alt="Scheduler Architecture" width="800">
 *Source: [Apache Airflow Core Concepts Overview](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/overview.html)*
 
 - **Scheduler:** Monitors all your DAGs and their tasks. It triggers scheduled DAG runs and sends tasks to the Executor when they are ready.

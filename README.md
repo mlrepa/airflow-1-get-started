@@ -1,6 +1,6 @@
 # 🌬️ Basics of Airflow for Modern AI and MLOps
 
-![Airflow Basics for Modern AI and MLOps](assets/images/airflow-banner-1.png){width=800}
+<img src="assets/images/airflow-banner-1.png" alt="Airflow Basics for Modern AI and MLOps" width="800">
 
 This repository contains the example code and setup instructions for the "Airflow Basics for Modern AI and MLOps" tutorial. It will guide you through setting up Apache Airflow using Docker and running a basic example DAG.
 
