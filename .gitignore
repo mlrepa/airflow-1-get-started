@@ -1,14 +1,7 @@
 ## Airflow
-!airflow/airflow.cfg
-airflow/dags
-airflow/*
-# airflow/*.log
-# airflow/*.out
-# airflow/*.pid
-# airflow/unittests.cfg
-# airflow-webserver.pid
-# airflow/standalone_admin_password.txt
-
+logs/*
+plugins/*
+dags/*
 
 ## Configs
 .env

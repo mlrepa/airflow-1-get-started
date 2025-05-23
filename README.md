@@ -19,7 +19,7 @@ Before starting Airflow for the first time, you need to prepare your environment
 **Create Airflow folder structure**
 
 ```bash
-mkdir -p ./airflow/logs ./airflow/plugins
+mkdir -p ./airflow/{dags,logs,plugins,config}
 ```
 
 Some directories in the container are mounted, which means that their contents are synchronized between your computer and the container.
@@ -43,6 +43,7 @@ On all operating systems, you need to run database migrations and create the fir
 ```bash
 docker compose up airflow-init
 ```
+
 Note: The account created has the login `airflow`and the password `airflow`
 
 
@@ -60,6 +61,9 @@ docker compose up -d
 - `airflow-webserver` - Airflow UI, available on [http://localhost:8080](http://localhost:8080)
 - `airflow-scheduler` - Airflow Scheduler (doesn't hae exposed endpoints)
 - `postgres` - Airflow PostgreSQL DataBase, available on [http://localhost:5432](http://localhost:5432)
+
+See [docs](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#fetching-docker-compose-yaml) for `docker-compose.yaml` details and instructions.
+
 
 </details>
 
@@ -84,17 +88,16 @@ After starting Airflow, you can interact with it in 3 ways:
 You can also run CLI commands, but you have to do it in one of the defined `airflow-*` services. For example, to run `airflow info`, run the following command:
 
 ```bash
-docker compose run airflow-worker airflow info
+docker compose run airflow-1-get-started-airflow-apiserver-1 airflow info
 ```
-
 
 You can also run CLI commands in the `airflow-webserver` service. To do this, run the following command:
 
 ```bash
 docker exec -ti airflow-webserver /bin/bash
-``` 
+```
 
-If you have Linux or Mac OS, you can `airflow.sh` wrapper scripts that will allow you to run commands with a simpler command.
+<!-- If you have Linux or Mac OS, you can `airflow.sh` wrapper scripts that will allow you to run commands with a simpler command.
 
 ```bash
 chmod +x airflow.sh
@@ -114,8 +117,7 @@ You can also use `bash` as parameter to enter interactive bash shell in the cont
 
 ```bash
 ./airflow.sh python
-```
-
+``` -->
 
 ### Accessing the web interface
 
@@ -125,17 +127,23 @@ The webserver is available at: `http://localhost:8080`. The default account has 
 
 ### Sending requests to the REST API
 
-Basic username password authentication is currently supported for the REST API, which means you can use common tools to send requests to the API.
-
 The webserver is available at: `http://localhost:8080`. The default account has the login `airflow` and the password `airflow`.
 
-Here is a sample curl command, which sends a request to retrieve a pool list:
+The Airflow public API uses JWT (JSON Web Token) for authenticating API requests [docs](https://airflow.apache.org/docs/apache-airflow/stable/security/api.html).
 
 ```bash
-ENDPOINT_URL="http://localhost:8080/"
-curl -X GET  \
-    --user "airflow:airflow" \
-    "${ENDPOINT_URL}/api/v1/pools"
+curl -X POST "http://localhost:8080/auth/token" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "airflow", "password": "airflow"}'
+```
+
+Get list of DAGs (top 3):
+
+```bash
+curl -X GET "http://localhost:8080/api/v2/dags?limit=3" \
+  -H "Authorization: Bearer <token>"
+
+
 ```
 
 ## 🧹 Cleaning up
@@ -146,7 +154,7 @@ Stop cluster
 docker compose down
 ```
 
-The docker-compose environment we have prepared is a “quick-start” one. It was not designed to be used in production. The best way to recover from any problem is to clean it up and restart from scratch. Run the command:
+The docker-compose environment we have prepared is a "quick-start" one. It was not designed to be used in production. The best way to recover from any problem is to clean it up and restart from scratch. Run the command:
   
 ```bash
 docker compose down -v --remove-orphans
@@ -162,12 +170,20 @@ docker compose down --volumes --rmi all
 ## ⚒️ DEV environment for pipelines development
 
 - In case you want to develop, run or debug Pipelines in Python Virtual Environment
-- Create virtual environment named `.venv` and install python libraries
+- Create virtual environment using `uv` and install python libraries
   
 ```bash
-python3 -m venv .venv
-echo "export PYTHONPATH=$PWD" >> .venv/bin/activate
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create and activate virtual environment from pyproject.toml
+uv venv .venv --python=3.12
 source .venv/bin/activate
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
+
+# Install dependencies using uv
+uv pip install --upgrade pip setuptools wheel
+uv pip install -e .
+
+# Install development dependencies
+uv add --dev black mypy ruff
 ```

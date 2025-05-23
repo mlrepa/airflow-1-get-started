@@ -1,0 +1,21 @@
+[project]
+name = "airflow-1-get-started"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11.6"
+dependencies = [
+    "jupyter>=1.1.1",
+    "numpy>=2.2.6",
+    "pandas>=2.2.3",
+    "pendulum>=3.1.0",
+    "requests>=2.32.3",
+    "scikit-learn>=1.6.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "mypy>=1.15.0",
+    "ruff>=0.11.11",
+]
