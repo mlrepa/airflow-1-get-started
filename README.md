@@ -60,6 +60,61 @@ docker compose up airflow-init
 
 ## 🚀 Launch Airflow
 
+### Run Airflow Standalone (Local Installation)
+
+> ⚠️ **Prerequisites:** This method requires a local Airflow installation. If you prefer a containerized approach (recommended), skip to the [Docker Compose section](#run-with-docker-compose) below.
+
+For development or learning purposes, you can run Airflow in standalone mode directly on your machine. This method is simpler but less production-ready than the Docker Compose approach.
+
+**Step 1: Install Airflow Locally**
+
+If you haven't installed Airflow locally, you can do so using the development environment setup:
+
+```bash
+# Create virtual environment and install dependencies
+uv venv .venv --python 3.12
+source .venv/bin/activate
+uv pip install -e .
+```
+
+**Step 2: Run Airflow Standalone**  
+
+```bash
+airflow standalone
+```
+
+> 📝 **Note:** The admin username and password will be displayed in the command output. Look for lines like:
+> ```
+> standalone | Airflow is ready
+> standalone | Login with username: admin  password: [generated_password]
+> ```
+
+**Step 3: Configure DAGs Folder (Optional)**
+
+To make DAGs from this repository's `dags/` folder visible in your local Airflow instance:
+
+1. **Stop Airflow** by pressing `Ctrl+C` in the terminal where `airflow standalone` is running
+
+2. **Update the configuration** in `~/airflow/airflow.cfg`:
+
+   ```bash
+   # Find the [core] section and update the dags_folder setting
+   dags_folder = /Users/$(whoami)/dev/mlrepa/airflow-1-get-started/dags
+   ```
+
+3. **Restart Airflow**:
+
+   ```bash
+   airflow standalone
+   ```
+
+**Access the Web Interface**
+
+- **URL:** [http://localhost:8080](http://localhost:8080)
+- **Credentials:** Use the admin `username` and `password` shown in the startup output
+
+### Run with Docker Compose
+
 With the environment initialized, you can now start all the Airflow services:
 
 ```bash
