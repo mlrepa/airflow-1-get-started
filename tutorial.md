@@ -212,11 +212,11 @@ docker exec -ti airflow-1-get-started-airflow-apiserver-1 /bin/bash
 ```
 
 1. Running the DAG: To run `hello-airflow`, use the following command:
-
+    
     ```bash
     airflow dags trigger hello-airflow
     ```
-
+    
 2. Monitoring Execution: You can check the DAG execution status using the `airflow dags list` or `airflow tasks list` commands.
 
 ### Automatic Schedule

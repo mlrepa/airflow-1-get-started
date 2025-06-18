@@ -13,7 +13,7 @@ Follow these steps to get your Airflow environment up and running.
 First, get the tutorial example code onto your local machine:
 
 ```bash
-git clone git@github.com:mlrepa/airflow-for-modern-ai-and-mlops.git
+git clone https://github.com/mlrepa/airflow-for-modern-ai-and-mlops.git
 cd airflow-for-modern-ai-and-mlops
 ```
 
@@ -36,7 +36,7 @@ If you haven't installed Airflow locally, you can do so using the development en
 # Create virtual environment and install dependencies
 uv venv .venv --python 3.12
 source .venv/bin/activate
-uv pip install -e .
+uv sync
 ```
 
 **Step 2: Run Airflow Standalone**  
@@ -44,7 +44,7 @@ uv pip install -e .
 The Standalone command will initialise the database, make a user, and start all components for you.
 
 ```bash
-export AIRFLOW__CORE__DAGS_FOLDER='./dags'
+export AIRFLOW__CORE__DAGS_FOLDER=$(pwd)/dags
 airflow standalone
 ```
 
@@ -182,35 +182,6 @@ docker exec -ti airflow-1-get-started-airflow-webserver-1 /bin/bash
 
 > (Replace `<your_project_name>-airflow-webserver-1` with the actual name from `docker ps`)
 
-### 3️⃣ Interacting with the REST API
-
-Airflow provides a robust REST API for programmatic interaction.
-
-**Authentication (Get an Access Token):**
-
-The Airflow API uses JWT (JSON Web Tokens) for authentication.
-
-```bash
-# Request an access token
-TOKEN=$(curl -X POST "http://localhost:8080/api/v1/auth" \
-  -H "Content-Type: application/json" \
-  -u "airflow:airflow" \
-  --silent | jq -r '.access_token')
-
-# Optional: Check the token
-echo $TOKEN
-```
-
-> ⚠️ **API Authentication Update:** The method `POST /auth/token` with username/password in the body is for older Airflow versions or specific auth backends. The current stable API often uses Basic Auth for the `/api/v1/auth` endpoint to get a token as shown above, or expects a pre-configured auth backend. Please refer to the [Airflow API Security Docs](https://airflow.apache.org/docs/apache-airflow/stable/security/api.html) for the most up-to-date authentication methods relevant to your Airflow version and configuration.
-
-**Example API Request (List DAGs):**
-
-```bash
-# Get list of DAGs (top 3)
-curl -X GET "http://localhost:8080/api/v1/dags?limit=3" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
 ## 🧹 Cleaning Up Your Environment
 
 When you're done, you can stop and remove the Airflow containers and associated resources.
@@ -238,40 +209,3 @@ This will also remove the Docker images that were downloaded or built for this s
 ```bash
 docker compose down --volumes --rmi all
 ```
-
-## 🛠️ DEV Environment for Pipeline Development (Optional)
-
-If you prefer to develop or debug your Airflow DAGs and custom Python code in a local Python virtual environment (outside of Docker, perhaps for better IDE integration):
-
-- **Install `uv`:** `uv` is a fast Python package installer and resolver.
-
-    ```bash
-    # Install uv if you haven't already
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    # Or consult official uv documentation for other installation methods
-    ```
-
-- **Create Virtual Environment & Install Dependencies:**
-    Ensure you have a `pyproject.toml` file in your project root that defines your project dependencies.
-
-    ```bash
-    # Create and activate virtual environment (e.g., using Python 3.12)
-    uv venv .venv --python 3.12
-    source .venv/bin/activate
-
-    # Install core dependencies (e.g., apache-airflow and any providers you need)
-    # This assumes your dependencies are listed in pyproject.toml or a requirements.txt
-    # If using pyproject.toml and your project is installable:
-    uv pip install -e .
-
-    # Or from requirements.txt:
-    # uv pip install -r requirements.txt
-
-    # Install development dependencies (linters, formatters)
-    # Assuming these are defined in your pyproject.toml under [project.optional-dependencies]
-    uv pip install -e ".[dev]" 
-    # Or add them individually:
-    # uv pip install black mypy ruff
-    ```
-
-> 👉 **Note for DAG Development:** Even when developing locally, your DAGs will ultimately run inside the Airflow Docker environment. Ensure that any Python packages your DAGs depend on are also available in the Docker image Airflow uses (you might need to build a custom Docker image if you have many specific dependencies).
