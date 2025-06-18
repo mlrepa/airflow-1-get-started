@@ -17,52 +17,14 @@ git clone git@github.com:mlrepa/airflow-for-modern-ai-and-mlops.git
 cd airflow-for-modern-ai-and-mlops
 ```
 
-### 2️⃣ Initialize Your Airflow Environment
-
-Before starting Airflow for the first time, you need to prepare your environment. This involves creating necessary directories and initializing the Airflow database.
-
-**📂 Create Airflow Folder Structure**
-
-These directories will be mounted into your Docker containers, allowing your local files to be accessed by Airflow:
-
-```bash
-mkdir -p ./airflow/{dags,logs,plugins,config}
-```
-
-> **Understanding Mounted Directories:**
->
-> - `./airflow/dags`: Place your DAG (workflow definition) files here.
-> - `./airflow/logs`: Contains logs from task executions and the Airflow scheduler.
-> - `./airflow/plugins`: You can add your custom Airflow plugins here.
-> - `./airflow/config`: (Optional) For custom Airflow configuration files like `airflow.cfg` if you choose to override defaults. *The provided `docker-compose.yaml` might already handle basic configurations.*
-
-**⚙️ Set Up Environment Variables**
-
-For Linux users, it's crucial to set the host user ID to ensure correct file permissions for files created by Airflow within the Docker containers.
-
-```bash
-echo -e "AIRFLOW_UID=$(id -u)" > .env
-```
-
-> 👉 **Tip:** This step helps avoid permission issues where files written by Airflow containers (running as `root` by default) become inaccessible to your host user.
-
-**🗂️ Initialize the Database**
-
-This step sets up the Airflow metadata database and creates the initial admin user.
-
-```bash
-docker compose up airflow-init
-```
-
-> ⚠️ **Default Credentials:**
-> The account created by `airflow-init` has the login: `airflow` and password: `airflow`.
-> Remember to change these for any non-local or production environment!
-
 ## 🚀 Launch Airflow
 
-### Run Airflow Standalone (Local Installation)
+Running options:
 
-> ⚠️ **Prerequisites:** This method requires a local Airflow installation. If you prefer a containerized approach (recommended), skip to the [Docker Compose section](#run-with-docker-compose) below.
+- Standalone (python environment)
+- Docker Compose (docker container)
+
+### 1. Run Airflow Standalone (Local Installation)
 
 For development or learning purposes, you can run Airflow in standalone mode directly on your machine. This method is simpler but less production-ready than the Docker Compose approach.
 
@@ -79,11 +41,15 @@ uv pip install -e .
 
 **Step 2: Run Airflow Standalone**  
 
+The Standalone command will initialise the database, make a user, and start all components for you.
+
 ```bash
+export AIRFLOW__CORE__DAGS_FOLDER='./dags'
 airflow standalone
 ```
 
 > 📝 **Note:** The admin username and password will be displayed in the command output. Look for lines like:
+>
 > ```
 > standalone | Airflow is ready
 > standalone | Login with username: admin  password: [generated_password]
@@ -99,7 +65,7 @@ To make DAGs from this repository's `dags/` folder visible in your local Airflow
 
    ```bash
    # Find the [core] section and update the dags_folder setting
-   dags_folder = /Users/$(whoami)/dev/mlrepa/airflow-1-get-started/dags
+   dags_folder = [PATH_TO_YOUR_REPO]/dags
    ```
 
 3. **Restart Airflow**:
@@ -113,7 +79,31 @@ To make DAGs from this repository's `dags/` folder visible in your local Airflow
 - **URL:** [http://localhost:8080](http://localhost:8080)
 - **Credentials:** Use the admin `username` and `password` shown in the startup output
 
-### Run with Docker Compose
+### 2. Run Aiflow in Docker ⚙️
+
+**Step 1: Set Up Environment Variables**
+
+For Linux users, it's crucial to set the host user ID to ensure correct file permissions for files created by Airflow within the Docker containers.
+
+```bash
+echo -e "AIRFLOW_UID=$(id -u)" > .env
+```
+
+> 👉 **Tip:** This step helps avoid permission issues where files written by Airflow containers (running as `root` by default) become inaccessible to your host user.
+
+**Step 2: Initialize the Database**
+
+This step sets up the Airflow metadata database and creates the initial admin user.
+
+```bash
+docker compose up airflow-init
+```
+
+> ⚠️ **Default Credentials:**
+> The account created by `airflow-init` has the login: `airflow` and password: `airflow`.
+> Remember to change these for any non-local or production environment!
+
+**Step 3: Run with Docker Compose**
 
 With the environment initialized, you can now start all the Airflow services:
 
