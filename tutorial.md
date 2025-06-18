@@ -299,6 +299,131 @@ This architecture makes Airflow a powerful and flexible tool for automating, sch
 
 ---
 
+# Daily Papers Parser
+
+This is a DAG example for daily parsing and processing new papers on AI and ML topics. 
+
+The DAG stored in `dag/daily_papers_parser.py` and reuses functions from modules:
+
+```
+dags/src/
+├── __init__.py          # Package initialization
+├── config.py            # Configuration constants and settings
+├── parsers.py           # Web scraping and parsing functions
+├── classifiers.py       # MLOps relevance classification logic
+├── storage.py           # Data saving and file operations
+├── reports.py           # Report generation functionality
+├── utils.py             # Common utility functions
+└── README.md            # This documentation
+```
+
+## Module Descriptions
+
+### `config.py`
+Contains all configuration constants:
+- `DATA_SOURCES`: URLs for different paper sources (HuggingFace, ArXiv categories)
+- `MLOPS_KEYWORDS`: Keywords for MLOps relevance classification
+- `TOOLS_PATTERNS`: Regex patterns for extracting tools and technologies
+- `DEFAULT_HEADERS`: HTTP headers for web scraping
+- Configuration constants for parsing limits and timeouts
+
+### `parsers.py`
+Web scraping and parsing functions:
+- `parse_huggingface_papers()`: Parse papers from HuggingFace daily papers
+- `parse_arxiv_category()`: Parse papers from a specific ArXiv category
+- `parse_all_arxiv_papers()`: Parse papers from all configured ArXiv categories
+- `combine_papers()`: Combine papers from multiple sources
+
+### `classifiers.py`
+Classification and analysis functions:
+- `calculate_mlops_score()`: Calculate MLOps relevance score
+- `extract_tools_from_text()`: Extract mentioned tools and technologies
+- `generate_mlops_summary()`: Generate summary for MLOps-relevant papers
+- `classify_paper_mlops_relevance()`: Classify a single paper
+- `classify_papers_mlops_relevance()`: Classify multiple papers
+
+### `storage.py`
+Data storage and file operations:
+- `save_raw_data()`: Save raw paper data to CSV
+- `save_processed_data()`: Save processed/classified data to CSV
+- `load_processed_data()`: Load processed data from CSV
+- `get_file_path()`: Generate file paths for data storage
+- `save_papers_to_csv()`: Generic CSV saving function
+
+### `reports.py`
+Report generation functionality:
+- `generate_summary_report()`: Generate daily summary report
+- `generate_detailed_report()`: Generate detailed statistics report
+- `analyze_paper_sources()`: Analyze papers by source
+- `analyze_top_tools()`: Analyze most mentioned tools
+- `get_sample_titles()`: Get sample paper titles
+
+### `utils.py`
+Common utility functions:
+- `setup_logging()`: Configure logging
+- `validate_paper_data()`: Validate paper data structure
+- `clean_text()`: Clean and normalize text content
+- `format_date_for_filename()`: Format dates for filenames
+- `ensure_data_directory()`: Ensure data directories exist
+- `count_papers_by_source()`: Count papers by source
+
+
+### In Airflow DAG
+
+```python
+from src.parsers import parse_huggingface_papers, parse_all_arxiv_papers
+from src.classifiers import classify_papers_mlops_relevance
+from src.storage import save_raw_data, save_processed_data
+from src.reports import generate_summary_report
+
+# Use in Airflow tasks
+@task
+def parse_papers_task():
+    hf_papers = parse_huggingface_papers()
+    arxiv_papers = parse_all_arxiv_papers()
+    return combine_papers(hf_papers, arxiv_papers)
+```
+
+## Testing
+
+Run the comprehensive test suite:
+```bash
+python scripts/test_paper_parsing.py
+```
+
+The test script validates:
+- Individual module functionality
+- Integration between modules
+- End-to-end pipeline execution
+- Data storage and retrieval
+- Report generation
+
+## Configuration
+
+Modify `config.py` to:
+- Add new paper sources
+- Update MLOps keywords
+- Configure parsing limits
+- Adjust tool detection patterns
+
+## Extending the System
+
+**Adding New Paper Sources**
+1. Add source URL to `DATA_SOURCES` in `config.py`
+2. Create parser function in `parsers.py`
+3. Update `parse_all_sources()` to include new source
+
+**Adding New Classification Categories**
+1. Add keywords to `config.py`
+2. Create classification function in `classifiers.py`
+3. Update main classification logic
+
+**Adding New Storage Backends**
+1. Create new storage functions in `storage.py`
+2. Update DAG to use new storage options
+
+
+
 ## 🔗 Additional Resources
 
 - [Airflow docs: Running Airflow in Docker](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#using-custom-images)
