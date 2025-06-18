@@ -257,7 +257,7 @@ def run_full_pipeline_test():
 
 def main():
     """Run all tests"""
-    print("=== Paper Parsing System Tests (Modular Version) ===")
+    print("=== Paper Parsing System Tests (Modular Version with Enhanced Abstracts) ===")
     
     tests = [
         ("Hugging Face Parsing", test_huggingface_parsing),
